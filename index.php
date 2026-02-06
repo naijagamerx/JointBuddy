@@ -7,6 +7,13 @@
 // Include bootstrap (loads all core services)
 require_once __DIR__ . '/includes/bootstrap.php';
 
+// Load handlers
+require_once __DIR__ . '/includes/handlers/HandlerInterface.php';
+require_once __DIR__ . '/includes/handlers/HandlerException.php';
+require_once __DIR__ . '/includes/handlers/AuthHandler.php';
+require_once __DIR__ . '/includes/handlers/WishlistHandler.php';
+require_once __DIR__ . '/includes/handlers/RequestHandler.php';
+
 // Include routing logic
 require_once __DIR__ . '/route.php';
 
@@ -19,76 +26,10 @@ $adminAuth = Services::adminAuth();
 $userAuth = Services::userAuth();
 $currencyService = Services::currencyService();
 
-// Handle POST requests with CSRF validation
+// Handle POST requests via RequestHandler
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // CSRF validation using middleware
-    CsrfMiddleware::validate();
-
-    // Handle user registration
-    if ($route === 'register' && isset($_POST['email']) && isset($_POST['password'])) {
-        if ($userAuth) {
-            $userData = [
-                'email' => $_POST['email'],
-                'password' => $_POST['password'],
-                'first_name' => $_POST['first_name'] ?? '',
-                'last_name' => $_POST['last_name'] ?? '',
-                'phone' => $_POST['phone'] ?? null
-            ];
-
-            $result = $userAuth->register($userData);
-
-            if ($result['success']) {
-                $_SESSION['registration_success'] = $result['message'];
-            } else {
-                $_SESSION['registration_error'] = $result['message'];
-            }
-        }
-    }
-
-    // Handle user login
-    if ($route === 'user/login' && isset($_POST['email']) && isset($_POST['password'])) {
-        if ($userAuth) {
-            $result = $userAuth->login($_POST['email'], $_POST['password']);
-
-            if ($result['success']) {
-                header('Location: ' . url('user/'));
-                exit;
-            } else {
-                $_SESSION['user_login_error'] = $result['message'];
-            }
-        }
-    }
-
-    // Handle Wishlist Add
-    if ($route === 'wishlist/add' && isset($_POST['product_id'])) {
-        header('Content-Type: application/json');
-
-        if (!$isLoggedIn) {
-            echo json_encode(['success' => false, 'message' => 'Please login to add to wishlist']);
-            exit;
-        }
-
-        try {
-            if ($db) {
-                // Check if already in wishlist
-                $stmt = $db->prepare("SELECT id FROM wishlists WHERE user_id = ? AND product_id = ?");
-                $stmt->execute([$currentUser['id'], $_POST['product_id']]);
-
-                if ($stmt->fetch()) {
-                    echo json_encode(['success' => true, 'message' => 'Already in wishlist']);
-                } else {
-                    $stmt = $db->prepare("INSERT INTO wishlists (user_id, product_id, created_at) VALUES (?, ?, NOW())");
-                    $stmt->execute([$currentUser['id'], $_POST['product_id']]);
-                    echo json_encode(['success' => true, 'message' => 'Added to wishlist']);
-                }
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Database error']);
-            }
-        } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-        }
-        exit;
-    }
+    $requestHandler = new RequestHandler();
+    $requestHandler->handlePost($route);
 }
 
 // Handle admin logout
