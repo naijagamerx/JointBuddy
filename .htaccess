@@ -1,0 +1,24 @@
+# CannaBuddy.shop - Production Rewrite Rules
+RewriteEngine On
+
+
+# RewriteBase for ROOT domain deployment
+# If you are running in a subdirectory (e.g. localhost/CannaBuddy.shop/), comment this out or change to /CannaBuddy.shop/
+# RewriteBase /
+
+# Allow access to physical files and directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Product detail pages
+RewriteRule ^product/([a-zA-Z0-9\-_]+)/?$ product/index.php [L,QSA]
+
+# User Order View
+RewriteRule ^user/orders/view/(\d+)/?$ user/orders/view.php?id=$1 [L,QSA]
+
+# Thank you page
+RewriteRule ^thank-you/(\d+)/?$ thank-you/index.php?order=$1 [L,QSA]
+
+# Route everything else to root index.php
+RewriteRule ^(.*)$ index.php [L,QSA]

@@ -1,0 +1,53 @@
+# ============== DIRECTORIES ==============
+test_delete/
+production/
+_archive/
+vendor/
+node_modules/
+.claude/memory/
+
+# ============== SENSITIVE FILES ==============
+.env
+*.key
+*.pem
+config.local.php
+
+# ============== LOGS ==============
+*.log
+logs/
+error_log
+php_errors.log
+
+# ============== IDE & OS ==============
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ============== TEMP FILES ==============
+*.tmp
+*.temp
+debug_*.php
+test_*.php
+fix_*.php
+compare_*.php
+sync_*.php
+verify_*.php
+cookies.txt
+nul
+
+# ============== USER UPLOADS ==============
+/assets/images/uploads/
+/assets/qr-codes/
+
+# ============== COMPOSER ==============
+composer.lock
+
+# ============== BACKUPS ==============
+*.bak
+*.backup
+*~
+*.orig

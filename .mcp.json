@@ -1,0 +1,56 @@
+{
+  "mcpServers": {
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "C:/Users/gcoll"
+      ],
+      "env": {}
+    },
+    "zai-mcp-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@z_ai/mcp-server"
+      ],
+      "env": {
+        "Z_AI_API_KEY": "20bba9cc4d9644bb808172e620ec4b43.St1ZJrXNGPFutYrb",
+        "Z_AI_MODE": "ZAI"
+      }
+    },
+    "web-search-prime": {
+      "type": "http",
+      "url": "https://api.z.ai/api/mcp/web_search_prime/mcp",
+      "headers": {
+        "Authorization": "Bearer 20bba9cc4d9644bb808172e620ec4b43.St1ZJrXNGPFutYrb"
+      }
+    },
+    "auggie-mcp": {
+      "command": "auggie",
+      "args": [
+        "--mcp"
+      ]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
+    "archon": {
+      "type": "http",
+      "url": "http://localhost:8051/mcp"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@executeautomation/playwright-mcp"]
+    }
+  }
+}

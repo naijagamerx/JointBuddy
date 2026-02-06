@@ -1,0 +1,545 @@
+{
+  "project": {
+    "name": "CannaBuddy.shop",
+    "tagline": "Pocket-sized peace of mind. Made in Mzansi.",
+    "business_model": "Premium cannabis accessories e-commerce",
+    "last_updated": "2025-12-08",
+    "overall_health": "REQUIRES IMMEDIATE ATTENTION",
+    "critical_issues": 5,
+    "high_priority_issues": 2
+  },
+  "architecture": {
+    "type": "dual_system",
+    "status": "CRITICAL ISSUE - TWO COMPLETE SYSTEMS",
+    "systems": {
+      "standalone_php": {
+        "name": "Standalone PHP System",
+        "location": "root_directory",
+        "status": "fully_implemented",
+        "primary_system": true,
+        "entry_point": "index.php",
+        "routing": "custom_file_based",
+        "database_driver": "PDO",
+        "authentication": "AdminAuth_UserAuth_classes",
+        "admin_files": 20,
+        "user_subdirectories": 25,
+        "features": {
+          "homepage": "complete",
+          "admin_panel": "full_crud",
+          "user_system": "extensive",
+          "cart_checkout": "implemented",
+          "payfast": "integrated"
+        }
+      },
+      "codeigniter_4": {
+        "name": "CodeIgniter 4 System",
+        "location": "app_directory",
+        "status": "fully_implemented",
+        "primary_system": false,
+        "framework": "CodeIgniter 4",
+        "controllers": 7,
+        "models": 4,
+        "database_driver": "MySQLi",
+        "authentication": "JWT_tokens",
+        "features": {
+          "mvc_architecture": "complete",
+          "controllers": "implemented",
+          "models": "implemented",
+          "views": "exists",
+          "routing": "ci4_router"
+        }
+      }
+    },
+    "risk_level": "CRITICAL",
+    "impact": "maintenance_nightmare_security_risk_data_corruption"
+  },
+  "progress": {
+    "overall_completion": "75%",
+    "homepage": "100%",
+    "admin_system": "90%",
+    "user_system": "80%",
+    "ecommerce_features": "85%",
+    "database": "100%",
+    "authentication": "90%",
+    "payment_integration": "80%"
+  },
+  "features": {
+    "implemented": {
+      "homepage": [
+        "500px_hero_slider",
+        "4_homepage_slides",
+        "recommended_products_section",
+        "6_featured_products",
+        "deals_section",
+        "6_sale_products",
+        "4_image_banner_section",
+        "responsive_design"
+      ],
+      "admin_panel": [
+        "analytics",
+        "delivery_methods",
+        "login_system",
+        "orders_management",
+        "payment_methods",
+        "products_crud",
+        "product_variations",
+        "seo_settings",
+        "appearance_settings",
+        "currency_settings",
+        "email_settings",
+        "notification_settings",
+        "slider_management",
+        "users_management"
+      ],
+      "user_system": [
+        "login_registration",
+        "dashboard",
+        "orders_with_tracking",
+        "forgot_password",
+        "reset_password",
+        "logout",
+        "profile_management",
+        "address_book",
+        "personal_details",
+        "reviews",
+        "security_settings",
+        "subscription_plans",
+        "support_system"
+      ],
+      "ecommerce": [
+        "product_catalog",
+        "product_filtering",
+        "product_search",
+        "shopping_cart",
+        "checkout_process",
+        "order_management",
+        "payfast_integration"
+      ]
+    },
+    "incomplete": [
+      {
+        "feature": "address_book",
+        "status": "unknown_incomplete",
+        "location": "user/address-book/",
+        "priority": "medium"
+      },
+      {
+        "feature": "personal_details",
+        "status": "unknown_incomplete",
+        "location": "user/personal-details/",
+        "priority": "medium"
+      },
+      {
+        "feature": "my_reviews",
+        "status": "unknown_incomplete",
+        "location": "user/reviews/",
+        "priority": "medium"
+      },
+      {
+        "feature": "admin_reviews",
+        "status": "basic_implementation",
+        "location": "admin/products/reviews.php",
+        "priority": "medium",
+        "notes": "needs_enhancement"
+      }
+    ]
+  },
+  "code_duplication": {
+    "severity": "HIGH",
+    "issues": [
+      {
+        "directory": "user/dashboard/",
+        "problem": "5_different_versions",
+        "files": [
+          "enhanced_dashboard.php",
+          "fixed_dashboard.php",
+          "index.php",
+          "main_dashboard.php",
+          "my-account-test.php",
+          "my-account.php",
+          "router.php"
+        ],
+        "action_required": "consolidate_to_one_version"
+      },
+      {
+        "directory": "user/login/",
+        "problem": "4_different_versions",
+        "files": [
+          "index.php",
+          "index_new.php",
+          "redirect_fix.php",
+          "simple_login.php"
+        ],
+        "action_required": "consolidate_to_one_version"
+      },
+      {
+        "system_level": "dual_authentication_systems",
+        "problem": "standalone_auth_and_ci4_auth",
+        "action_required": "consolidate_to_single_auth_system"
+      },
+      {
+        "system_level": "dual_database_layers",
+        "problem": "PDO_and_MySQLi",
+        "action_required": "standardize_to_single_driver"
+      }
+    ]
+  },
+  "database": {
+    "type": "MySQL",
+    "version": "5.7.24",
+    "name": "cannabuddy",
+    "connection_status": "operational",
+    "tables": [
+      "products",
+      "orders",
+      "order_items",
+      "users",
+      "admin_users",
+      "categories",
+      "homepage_slider"
+    ],
+    "admin_credentials": {
+      "email": "admin@cannabuddy.co.za",
+      "password": "admin123"
+    },
+    "risk": "two_systems_writing_to_same_database"
+  },
+  "technical_stack": {
+    "backend": {
+      "primary": "PHP_8.3.1",
+      "secondary": "CodeIgniter_4",
+      "database": "MySQL_5.7.24"
+    },
+    "frontend": {
+      "css": "Tailwind_CSS_2.2.19_CDN",
+      "javascript": "Alpine.js_CDN",
+      "design": "mobile_first_responsive"
+    },
+    "payment": {
+      "gateway": "PayFast",
+      "status": "sandbox_ready"
+    },
+    "hosting": {
+      "development": "MAMP",
+      "production": "Hostinger_shared_hosting"
+    }
+  },
+  "blockers": [
+    {
+      "blocker": "dual_system_chaos",
+      "priority": "CRITICAL",
+      "impact": "maintenance_security_deployment",
+      "resolution": "decide_production_system_consolidate"
+    },
+    {
+      "blocker": "code_duplication",
+      "priority": "HIGH",
+      "impact": "confusion_bugs_wasted_space",
+      "resolution": "clean_up_duplicate_files"
+    },
+    {
+      "blocker": "authentication_confusion",
+      "priority": "CRITICAL",
+      "impact": "security_vulnerabilities",
+      "resolution": "standardize_to_single_auth_system"
+    },
+    {
+      "blocker": "database_driver_mismatch",
+      "priority": "MEDIUM",
+      "impact": "code_inconsistency",
+      "resolution": "standardize_database_layer"
+    },
+    {
+      "blocker": "documentation_inconsistencies",
+      "priority": "MEDIUM",
+      "impact": "developer_confusion",
+      "resolution": "update_all_documentation"
+    }
+  ],
+  "inconsistencies": [
+    {
+      "category": "architecture",
+      "issue": "two_complete_separate_systems",
+      "severity": "CRITICAL"
+    },
+    {
+      "category": "authentication",
+      "issue": "two_different_auth_systems",
+      "severity": "HIGH"
+    },
+    {
+      "category": "database",
+      "issue": "PDO_vs_MySQLi_drivers",
+      "severity": "MEDIUM"
+    },
+    {
+      "category": "documentation",
+      "issue": "conflicting_information_about_primary_system",
+      "severity": "MEDIUM"
+    },
+    {
+      "category": "code_quality",
+      "issue": "multiple_versions_of_same_files",
+      "severity": "HIGH"
+    }
+  ],
+  "product_catalog": {
+    "total_products": 12,
+    "featured_products": 6,
+    "sale_products": 6,
+    "products": [
+      {
+        "name": "JointBuddy Protective Case",
+        "price": 189,
+        "currency": "ZAR",
+        "colors": ["Purple", "Green", "Black"]
+      },
+      {
+        "name": "3D Print Vape Holder",
+        "price": 159,
+        "currency": "ZAR"
+      },
+      {
+        "name": "Cannabis Grinder Dispenser",
+        "price": 225,
+        "currency": "ZAR"
+      },
+      {
+        "name": "Rolling Tray Organizer",
+        "price": 139,
+        "currency": "ZAR"
+      },
+      {
+        "name": "Stash Box Pro",
+        "price": 299,
+        "currency": "ZAR"
+      },
+      {
+        "name": "Hemp Wick Dispenser",
+        "price": 89,
+        "currency": "ZAR"
+      },
+      {
+        "name": "Budget Rolling Kit",
+        "original_price": 199,
+        "sale_price": 149,
+        "discount": "25%",
+        "currency": "ZAR"
+      },
+      {
+        "name": "Plastic Grinder (2pc)",
+        "original_price": 129,
+        "sale_price": 99,
+        "discount": "23%",
+        "currency": "ZAR"
+      },
+      {
+        "name": "Basic Stash Tube",
+        "original_price": 89,
+        "sale_price": 69,
+        "discount": "22%",
+        "currency": "ZAR"
+      },
+      {
+        "name": "Mini Torch Lighter",
+        "original_price": 179,
+        "sale_price": 139,
+        "discount": "22%",
+        "currency": "ZAR"
+      },
+      {
+        "name": "Pre-Roll Storage Tubes (5pk)",
+        "original_price": 149,
+        "sale_price": 119,
+        "discount": "20%",
+        "currency": "ZAR"
+      },
+      {
+        "name": "Smoking Tray Set",
+        "original_price": 249,
+        "sale_price": 199,
+        "discount": "20%",
+        "currency": "ZAR"
+      }
+    ]
+  },
+  "immediate_actions": {
+    "phase_1": {
+      "name": "Decision",
+      "timeline": "this_week",
+      "deadline": "2025-12-10",
+      "tasks": [
+        "decide_production_system",
+        "deprecate_other_system",
+        "update_documentation"
+      ]
+    },
+    "phase_2": {
+      "name": "Consolidation",
+      "timeline": "week_1-2",
+      "deadline": "2025-12-15",
+      "tasks": [
+        "audit_features",
+        "port_missing_features",
+        "clean_up_duplicates",
+        "migrate_data"
+      ]
+    },
+    "phase_3": {
+      "name": "Standardization",
+      "timeline": "week_3",
+      "deadline": "2025-12-22",
+      "tasks": [
+        "single_authentication",
+        "code_review",
+        "test_thoroughly",
+        "deploy_consolidated_system"
+      ]
+    }
+  },
+  "recommendations": [
+    {
+      "priority": 1,
+      "recommendation": "choose_standalone_php",
+      "rationale": [
+        "more_complete_feature_set",
+        "better_admin_system",
+        "simpler_routing_for_shared_hosting",
+        "documented_as_primary"
+      ]
+    },
+    {
+      "priority": 2,
+      "recommendation": "deprecate_codeigniter_4",
+      "actions": [
+        "review_ci4_specific_features",
+        "port_unique_features_to_standalone",
+        "delete_app_directory",
+        "remove_ci4_dependencies"
+      ]
+    },
+    {
+      "priority": 3,
+      "recommendation": "clean_up_standalone_system",
+      "actions": [
+        "remove_duplicate_dashboard_files",
+        "remove_duplicate_login_files",
+        "standardize_coding_patterns",
+        "update_authentication"
+      ]
+    }
+  ],
+  "testing": {
+    "admin_access": {
+      "url": "/admin/login/",
+      "credentials": "admin@cannabuddy.co.za / admin123",
+      "status": "functional"
+    },
+    "user_access": {
+      "url": "/user/login/",
+      "status": "functional_multiple_versions"
+    },
+    "database": {
+      "connection": "operational",
+      "tables": "created_and_populated",
+      "risk": "two_systems_writing"
+    }
+  },
+  "forbidden_features": [
+    {
+      "feature": "3d_printing_mentions",
+      "reason": "business_secret",
+      "enforcement": "strict"
+    },
+    {
+      "feature": "3d_models_viewers",
+      "reason": "business_secret",
+      "enforcement": "strict"
+    },
+    {
+      "feature": "localStorage",
+      "reason": "server_side_sessions_only",
+      "enforcement": "strict"
+    },
+    {
+      "feature": "client_side_cart",
+      "reason": "must_be_server_side_mysql",
+      "enforcement": "strict"
+    }
+  ],
+  "documentation": {
+    "status": "inconsistent",
+    "conflicts": [
+      {
+        "document": "CLAUDE.md",
+        "claim": "standalone_is_primary"
+      },
+      {
+        "document": "PROJECT_SUMMARY.md",
+        "claim": "codeigniter_4_is_main"
+      }
+    ],
+    "last_updates": {
+      "CLAUDE.md": "unknown",
+      "project_status.md": "2025-12-08",
+      "agent.md": "2025-12-03",
+      "PROJECT_SUMMARY.md": "2025-11-13"
+    }
+  },
+  "roadmap": {
+    "short_term": [
+      "decide_production_system",
+      "consolidate_to_single_system",
+      "clean_up_duplicate_files",
+      "update_documentation"
+    ],
+    "medium_term": [
+      "complete_incomplete_features",
+      "enhance_admin_reviews",
+      "implement_missing_payfast_features",
+      "add_comprehensive_testing"
+    ],
+    "long_term": [
+      "performance_optimization",
+      "seo_enhancements",
+      "additional_product_features",
+      "mobile_app_consideration"
+    ]
+  },
+  "metrics": {
+    "file_count": {
+      "standalone_admin": 20,
+      "standalone_user_subdirectories": 25,
+      "ci4_controllers": 7,
+      "ci4_models": 4
+    },
+    "feature_completion": {
+      "homepage": 100,
+      "admin_panel": 90,
+      "user_system": 80,
+      "ecommerce": 85
+    },
+    "risk_score": {
+      "scale": "1-10",
+      "current": 9,
+      "description": "CRITICAL - dual system chaos"
+    }
+  },
+  "verdict": {
+    "status": "REQUIRES IMMEDIATE CONSOLIDATION",
+    "strengths": [
+      "both_systems_feature_complete",
+      "homepage_beautiful_and_functional",
+      "admin_system_comprehensive",
+      "database_populated_and_operational",
+      "user_system_extensive_features"
+    ],
+    "weaknesses": [
+      "two_systems_maintenance_nightmare",
+      "duplicate_files_everywhere",
+      "unclear_which_system_is_production",
+      "security_risk_two_auth_systems",
+      "data_corruption_risk_same_db"
+    ]
+  }
+}

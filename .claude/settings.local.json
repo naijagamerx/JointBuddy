@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__auggie-mcp__codebase-retrieval",
+      "Bash(php:*)",
+      "Bash(test:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(mysql:*)",
+      "Skill(AuggieMCPAnalyzer)",
+      "Skill(mgrep:mgrep)",
+      "Skill(Mysql)",
+      "mcp__shrimp-task-manager__research_mode"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

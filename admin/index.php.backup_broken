@@ -1,0 +1,393 @@
+<?php
+session_start();
+
+// Enable comprehensive error reporting for development
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+// Log all errors to a file for debugging
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/php_errors_admin.log');
+
+// Create logs directory if it doesn't exist
+if (!is_dir(__DIR__ . '/../logs')) {
+    mkdir(__DIR__ . '/../logs', 0755, true);
+}
+
+// Custom error handler for admin panel
+function adminErrorHandler($errno, $errstr, $errfile, $errline) {
+    $errorTypes = [
+        E_ERROR => 'Fatal Error',
+        E_WARNING => 'Warning',
+        E_PARSE => 'Parse Error',
+        E_NOTICE => 'Notice',
+        E_CORE_ERROR => 'Core Error',
+        E_CORE_WARNING => 'Core Warning',
+        E_COMPILE_ERROR => 'Compile Error',
+        E_COMPILE_WARNING => 'Compile Warning',
+        E_USER_ERROR => 'User Error',
+        E_USER_WARNING => 'User Warning',
+        E_USER_NOTICE => 'User Notice',
+        E_STRICT => 'Strict Notice',
+        E_RECOVERABLE_ERROR => 'Recoverable Error',
+        E_DEPRECATED => 'Deprecated',
+        E_USER_DEPRECATED => 'User Deprecated',
+    ];
+
+    $errorType = $errorTypes[$errno] ?? 'Unknown Error';
+    $timestamp = date('Y-m-d H:i:s');
+    $message = "[$timestamp] $errorType: $errstr in $errfile on line $errline\n";
+
+    // Log to file
+    error_log($message, 3, __DIR__ . '/../logs/php_errors_admin.log');
+
+    // Store in session for display
+    $_SESSION['admin_errors'][] = [
+        'type' => $errorType,
+        'message' => $errstr,
+        'file' => basename($errfile),
+        'line' => $errline,
+        'time' => date('H:i:s')
+    ];
+
+    return true;
+}
+
+// Set custom error handler
+set_error_handler('adminErrorHandler');
+
+// Exception handler for uncaught exceptions
+function adminExceptionHandler($exception) {
+    $timestamp = date('Y-m-d H:i:s');
+    $message = "[$timestamp] Uncaught Exception: " . $exception->getMessage() . " in " . $exception->getFile() . " on line " . $exception->getLine() . "\n";
+    $message .= "Stack trace:\n" . $exception->getTraceAsString() . "\n";
+
+    // Log to file
+    error_log($message, 3, __DIR__ . '/../logs/php_errors_admin.log');
+
+    // Store in session for display
+    $_SESSION['admin_errors'][] = [
+        'type' => 'Uncaught Exception',
+        'message' => $exception->getMessage(),
+        'file' => basename($exception->getFile()),
+        'line' => $exception->getLine(),
+        'time' => date('H:i:s')
+    ];
+}
+
+// Set exception handler
+set_exception_handler('adminExceptionHandler');
+
+// Include database and admin auth
+require_once __DIR__ . '/../includes/database.php';
+require_once __DIR__ . '/../includes/url_helper.php';
+require_once __DIR__ . '/../admin_sidebar_components.php';
+
+try {
+    $database = new Database();
+    $db = $database->getConnection();
+    $adminAuth = new AdminAuth($db);
+} catch (Exception $e) {
+    $db = null;
+    $adminAuth = null;
+}
+
+// Check if admin is logged in
+if (!$adminAuth || !$adminAuth->isLoggedIn()) {
+    redirect('/admin/login/');
+}
+
+// Get statistics
+$stats = [
+    'total_products' => 0,
+    'total_orders' => 0,
+    'total_users' => 0,
+    'pending_orders' => 0
+];
+
+if ($db) {
+    try {
+        // Get total products
+        $stmt = $db->query("SELECT COUNT(*) as count FROM products");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stats['total_products'] = $result['count'] ?? 0;
+
+        // Get total orders
+        $stmt = $db->query("SELECT COUNT(*) as count FROM orders");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stats['total_orders'] = $result['count'] ?? 0;
+
+        // Get total users
+        $stmt = $db->query("SELECT COUNT(*) as count FROM users");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stats['total_users'] = $result['count'] ?? 0;
+
+        // Get pending orders
+        $stmt = $db->query("SELECT COUNT(*) as count FROM orders WHERE status = 'pending'");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stats['pending_orders'] = $result['count'] ?? 0;
+    } catch (Exception $e) {
+        error_log("Error getting stats: " . $e->getMessage());
+    }
+}
+
+// Generate dashboard content
+$content = '
+<div class="max-w-7xl mx-auto">
+    <!-- Welcome Banner -->
+    <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-6 mb-6 text-white">
+        <h1 class="text-2xl font-bold mb-2">Welcome to JointBuddy Admin!</h1>
+        <p class="text-green-100">Manage your products, orders, and customers all in one place.</p>
+    </div>
+
+    <!-- Error Display Section -->
+    <?php if (isset($_SESSION['admin_errors']) && !empty($_SESSION['admin_errors'])): ?>
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-red-500"></i>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-sm font-medium text-red-800">Errors Detected (<?php echo count($_SESSION['admin_errors']); ?>)</h3>
+                    <div class="mt-2 text-sm text-red-700 max-h-60 overflow-y-auto">
+                        <ul class="list-disc list-inside space-y-1">
+                            <?php foreach ($_SESSION['admin_errors'] as $error): ?>
+                                <li class="font-mono text-xs">
+                                    <span class="font-bold">[<?php echo htmlspecialchars($error['type']); ?>]</span>
+                                    <?php echo htmlspecialchars($error['message']); ?>
+                                    <?php if (isset($error['file'])): ?>
+                                        in <span class="text-red-900"><?php echo htmlspecialchars($error['file']); ?></span>
+                                    <?php endif; ?>
+                                    <?php if (isset($error['line'])): ?>
+                                        on line <span class="text-red-900"><?php echo htmlspecialchars($error['line']); ?></span>
+                                    <?php endif; ?>
+                                    <?php if (isset($error['time'])): ?>
+                                        at <span class="text-red-600"><?php echo htmlspecialchars($error['time']); ?></span>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+                <div class="ml-auto pl-3">
+                    <a href="?clear_errors=1" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+            </div>
+        </div>
+        <?php
+        // Clear errors if requested
+        if (isset($_GET['clear_errors'])) {
+            unset($_SESSION['admin_errors']);
+        }
+        ?>
+    <?php endif; ?>
+
+    <!-- Warning Display Section for PHP Errors -->
+    <?php
+    // Display PHP errors if display_errors is on
+    if (ini_get('display_errors')) {
+        $error = error_get_last();
+        if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+            ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+                <strong class="font-bold">PHP Error:</strong>
+                <span class="block sm:inline"><?php echo htmlspecialchars($error['message']); ?></span>
+                <div class="text-xs mt-1">
+                    File: <?php echo htmlspecialchars($error['file']); ?> | Line: <?php echo $error['line']; ?>
+                </div>
+            </div>
+            <?php
+        }
+    }
+    ?>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Products</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">' . $stats['total_products'] . '</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-box text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Orders</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">' . $stats['total_orders'] . '</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Users</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">' . $stats['total_users'] . '</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-users text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Pending Orders</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">' . $stats['pending_orders'] . '</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Quick Actions</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="<?php echo  adminUrl('/products/') ?>" class="flex items-center p-4 rounded-lg border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-box text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">Products</h3>
+                        <p class="text-sm text-gray-600">Manage inventory</p>
+                    </div>
+                </a>
+
+                <a href="<?php echo  adminUrl('/orders/') ?>" class="flex items-center p-4 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-shopping-bag text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">Orders</h3>
+                        <p class="text-sm text-gray-600">Process orders</p>
+                    </div>
+                </a>
+
+                <a href="<?php echo  adminUrl('/users/') ?>" class="flex items-center p-4 rounded-lg border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-users text-purple-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">Users</h3>
+                        <p class="text-sm text-gray-600">View customers</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Information Panel (Development Only) -->
+    <?php if (isset($_GET['debug']) || isset($_SESSION['show_debug'])): ?>
+        <div class="bg-gray-800 text-green-400 p-6 rounded-lg shadow-lg mb-6 font-mono text-sm">
+            <h2 class="text-lg font-bold text-white mb-4 flex items-center">
+                <i class="fas fa-bug mr-2"></i> Debug Information
+                <a href="?clear_debug=1" class="ml-auto text-xs text-gray-400 hover:text-white">Clear</a>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="bg-gray-900 p-3 rounded">
+                    <h3 class="text-white font-bold mb-2">System Info</h3>
+                    <div class="space-y-1">
+                        <div><span class="text-gray-400">PHP Version:</span> <?php echo PHP_VERSION; ?></div>
+                        <div><span class="text-gray-400">Server:</span> <?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'; ?></div>
+                        <div><span class="text-gray-400">Document Root:</span> <?php echo $_SERVER['DOCUMENT_ROOT']; ?></div>
+                        <div><span class="text-gray-400">Script Name:</span> <?php echo $_SERVER['SCRIPT_NAME']; ?></div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-3 rounded">
+                    <h3 class="text-white font-bold mb-2">PHP Configuration</h3>
+                    <div class="space-y-1">
+                        <div><span class="text-gray-400">Display Errors:</span> <?php echo ini_get('display_errors') ? '<span class="text-green-400">ON</span>' : '<span class="text-red-400">OFF</span>'; ?></div>
+                        <div><span class="text-gray-400">Error Reporting:</span> <?php echo ini_get('error_reporting'); ?></div>
+                        <div><span class="text-gray-400">Log Errors:</span> <?php echo ini_get('log_errors') ? 'ON' : 'OFF'; ?></div>
+                        <div><span class="text-gray-400">Memory Limit:</span> <?php echo ini_get('memory_limit'); ?></div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-3 rounded">
+                    <h3 class="text-white font-bold mb-2">Performance</h3>
+                    <div class="space-y-1">
+                        <div><span class="text-gray-400">Memory Usage:</span> <?php echo number_format(memory_get_usage() / 1024 / 1024, 2); ?> MB</div>
+                        <div><span class="text-gray-400">Peak Memory:</span> <?php echo number_format(memory_get_peak_usage() / 1024 / 1024, 2); ?> MB</div>
+                        <div><span class="text-gray-400">Execution Time:</span> <?php echo round(microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'], 4); ?>s</div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-3 rounded">
+                    <h3 class="text-white font-bold mb-2">Database</h3>
+                    <div class="space-y-1">
+                        <div><span class="text-gray-400">Connection:</span> <?php echo $db ? '<span class="text-green-400">Connected</span>' : '<span class="text-red-400">Failed</span>'; ?></div>
+                        <div><span class="text-gray-400">Auth System:</span> <?php echo $adminAuth ? '<span class="text-green-400">Loaded</span>' : '<span class="text-red-400">Not Loaded</span>'; ?></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Include Files -->
+            <div class="bg-gray-900 p-3 rounded mt-4">
+                <h3 class="text-white font-bold mb-2">Included Files</h3>
+                <div class="max-h-40 overflow-y-auto text-xs">
+                    <?php foreach (get_included_files() as $file): ?>
+                        <div class="text-gray-400"><?php echo htmlspecialchars($file); ?></div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <!-- Error Log -->
+            <?php if (file_exists(__DIR__ . '/../logs/php_errors_admin.log')): ?>
+                <div class="bg-gray-900 p-3 rounded mt-4">
+                    <h3 class="text-white font-bold mb-2">Recent Error Log (<a href="?clear_error_log=1" class="text-yellow-400 hover:text-yellow-300">Clear</a>)</h3>
+                    <div class="max-h-40 overflow-y-auto text-xs text-red-400">
+                        <?php
+                        $logLines = file(__DIR__ . '/../logs/php_errors_admin.log');
+                        $logLines = array_slice($logLines, -20); // Last 20 lines
+                        foreach ($logLines as $line) {
+                            echo '<div>' . htmlspecialchars($line) . '</div>';
+                        }
+                        ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+        // Handle debug actions
+        if (isset($_GET['clear_debug'])) {
+            unset($_SESSION['show_debug']);
+        }
+        if (isset($_GET['clear_error_log'])) {
+            if (file_exists(__DIR__ . '/../logs/php_errors_admin.log')) {
+                file_put_contents(__DIR__ . '/../logs/php_errors_admin.log', '');
+            }
+        }
+        ?>
+    <?php else: ?>
+        <!-- Debug Toggle Button -->
+        <div class="fixed bottom-4 right-4">
+            <a href="?debug=1" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-full shadow-lg transition-colors">
+                <i class="fas fa-bug mr-1"></i> Debug
+            </a>
+        </div>
+    <?php endif; ?>
+</div>';
+
+// Render the page with sidebar
+echo adminSidebarWrapper('Dashboard', $content, 'dashboard');

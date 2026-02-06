@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/bootstrap.php"
+         colors="true"
+         beStrictAboutTestsThatDoNotTestAnything="true">
+    <testsuites>
+        <testsuite name="CannaBuddy Standalone">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">includes</directory>
+        </include>
+        <exclude>
+            <file>includes/enhanced_error_handler.php</file>
+        </exclude>
+        <report>
+            <html outputDirectory="tests/coverage" lowUpperBound="50" highLowerBound="80"/>
+            <text outputFile="tests/coverage.txt"/>
+        </report>
+    </coverage>
+
+    <logging>
+        <junit outputFile="tests/junit.xml"/>
+    </logging>
+</phpunit>
+

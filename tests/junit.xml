@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="C:\MAMP\htdocs\CannaBuddy.shop\tests" tests="184" assertions="252" errors="6" warnings="0" failures="10" skipped="3" time="1.320604">
+    <testsuite name="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" tests="20" assertions="16" errors="5" warnings="0" failures="1" skipped="0" time="0.130167">
+      <testcase name="testRequireAdminRedirectsWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="72" assertions="0" time="0.017825">
+        <error type="PHPUnit\Framework\Error\Warning">AuthMiddlewareTest::testRequireAdminRedirectsWhenNotLoggedIn
+Cannot modify header information - headers already sent by (output started at C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php:11)
+
+C:\MAMP\htdocs\CannaBuddy.shop\includes\url_helper.php:127
+C:\MAMP\htdocs\CannaBuddy.shop\includes\middleware\AuthMiddleware.php:24
+C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php:76</error>
+      </testcase>
+      <testcase name="testRequireAdminSetsIntendedUrl" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="84" assertions="1" time="0.003682"/>
+      <testcase name="testIsAdminLoggedInReturnsFalseWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="97" assertions="1" time="0.002522"/>
+      <testcase name="testIsAdminLoggedInReturnsTrueWhenLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="109" assertions="1" time="0.018425"/>
+      <testcase name="testGetCurrentAdminReturnsNullWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="122" assertions="1" time="0.003374"/>
+      <testcase name="testGetAdminIdReturnsNullWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="133" assertions="1" time="0.011333"/>
+      <testcase name="testRequireUserRedirectsWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="144" assertions="0" time="0.002141">
+        <error type="PHPUnit\Framework\Error\Warning">AuthMiddlewareTest::testRequireUserRedirectsWhenNotLoggedIn
+Cannot modify header information - headers already sent by (output started at C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php:11)
+
+C:\MAMP\htdocs\CannaBuddy.shop\includes\url_helper.php:127
+C:\MAMP\htdocs\CannaBuddy.shop\includes\middleware\AuthMiddleware.php:39
+C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php:148</error>
+      </testcase>
+      <testcase name="testRequireUserSetsIntendedUrl" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="156" assertions="1" time="0.002261"/>
+      <testcase name="testIsUserLoggedInReturnsFalseWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="169" assertions="1" time="0.022722"/>
+      <testcase name="testGetCurrentUserReturnsNullWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="180" assertions="1" time="0.002272"/>
+      <testcase name="testGetUserIdReturnsNullWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="191" assertions="1" time="0.001898"/>
+      <testcase name="testAdminHasRoleReturnsFalseWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="202" assertions="1" time="0.026322"/>
+      <testcase name="testAdminHasAnyRoleReturnsFalseWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="213" assertions="1" time="0.001985"/>
+      <testcase name="testRequireAdminRoleRedirectsWhenNotLoggedIn" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="224" assertions="0" time="0.001944">
+        <error type="PHPUnit\Framework\Error\Warning">AuthMiddlewareTest::testRequireAdminRoleRedirectsWhenNotLoggedIn
+Cannot modify header information - headers already sent by (output started at C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php:11)
+
+C:\MAMP\htdocs\CannaBuddy.shop\includes\url_helper.php:127
+C:\MAMP\htdocs\CannaBuddy.shop\includes\middleware\AuthMiddleware.php:24
+C:\MAMP\htdocs\CannaBuddy.shop\includes\middleware\AuthMiddleware.php:127
+C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php:228</error>
+      </testcase>
+      <testcase name="testRequireAdminRoleRedirectsWithWrongRole" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="237" assertions="0" time="0.002269">
+        <error type="PHPUnit\Framework\Error\Warning">AuthMiddlewareTest::testRequireAdminRoleRedirectsWithWrongRole
+Cannot modify header information - headers already sent by (output started at C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php:11)
+
+C:\MAMP\htdocs\CannaBuddy.shop\includes\url_helper.php:127
+C:\MAMP\htdocs\CannaBuddy.shop\includes\middleware\AuthMiddleware.php:24
+C:\MAMP\htdocs\CannaBuddy.shop\includes\middleware\AuthMiddleware.php:127
+C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php:241</error>
+      </testcase>
+      <testcase name="testRedirectPreservesIntendedUrl" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="249" assertions="1" time="0.002800"/>
+      <testcase name="testIntendedUrlUsesDefaultWhenEmpty" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="264" assertions="1" time="0.003772">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">AuthMiddlewareTest::testIntendedUrlUsesDefaultWhenEmpty
+Failed asserting that two strings are equal.
+--- Expected
++++ Actual
+@@ @@
+-'/'
++''
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php:270</failure>
+      </testcase>
+      <testcase name="testMultipleRequireCallsPreserveFirstIntendedUrl" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="279" assertions="0" time="0.002347">
+        <error type="PHPUnit\Framework\RiskyTestError">AuthMiddlewareTest::testMultipleRequireCallsPreserveFirstIntendedUrl
+This test did not perform any assertions
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php:279</error>
+      </testcase>
+      <testcase name="testAuthMiddlewareWithSessionFlash" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="303" assertions="2" time="0.000159"/>
+      <testcase name="testCsrfErrorCanBeSetAfterAuthFailure" class="AuthMiddlewareTest" classname="AuthMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\AuthMiddlewareTest.php" line="316" assertions="1" time="0.000115"/>
+    </testsuite>
+    <testsuite name="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" tests="25" assertions="37" errors="0" warnings="0" failures="2" skipped="0" time="0.011468">
+      <testcase name="testGetTokenGeneratesToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="70" assertions="4" time="0.004221"/>
+      <testcase name="testGetTokenReturnsSameToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="83" assertions="1" time="0.000162"/>
+      <testcase name="testGetTokenStoresInSession" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="95" assertions="2" time="0.000709"/>
+      <testcase name="testGetFieldReturnsHtml" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="107" assertions="5" time="0.000680"/>
+      <testcase name="testGetFieldIncludesCurrentToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="122" assertions="1" time="0.000151"/>
+      <testcase name="testIsValidAcceptsValidToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="134" assertions="1" time="0.000512"/>
+      <testcase name="testIsValidRejectsInvalidToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="147" assertions="1" time="0.000175"/>
+      <testcase name="testIsValidRejectsEmptyToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="158" assertions="1" time="0.000203">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">CsrfMiddlewareTest::testIsValidRejectsEmptyToken
+Failed asserting that true is false.
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php:161</failure>
+      </testcase>
+      <testcase name="testRegenerateCreatesNewToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="169" assertions="1" time="0.000237"/>
+      <testcase name="testRegenerateUpdatesSession" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="184" assertions="1" time="0.000170"/>
+      <testcase name="testValidateSkipsGetRequests" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="199" assertions="1" time="0.000132"/>
+      <testcase name="testValidateAllowsPostWithNoToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="213" assertions="1" time="0.000782">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">CsrfMiddlewareTest::testValidateAllowsPostWithNoToken
+Failed asserting that exception of type "RuntimeException" is thrown.</failure>
+      </testcase>
+      <testcase name="testValidateAcceptsPostWithValidToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="228" assertions="1" time="0.000150"/>
+      <testcase name="testValidateRegeneratesTokenAfterSuccess" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="245" assertions="1" time="0.000136"/>
+      <testcase name="testGetAjaxHeaderReturnsArray" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="263" assertions="2" time="0.000139"/>
+      <testcase name="testGetAjaxHeaderIncludesCurrentToken" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="275" assertions="1" time="0.000148"/>
+      <testcase name="testExemptAddsRouteToList" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="287" assertions="1" time="0.001262"/>
+      <testcase name="testExemptPreventsDuplicates" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="300" assertions="1" time="0.000633"/>
+      <testcase name="testIsExemptReturnsTrueForExemptRoutes" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="314" assertions="1" time="0.000137"/>
+      <testcase name="testIsExemptReturnsFalseForNonExemptRoutes" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="328" assertions="1" time="0.000118"/>
+      <testcase name="testIsExemptHandlesTrailingSlashes" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="341" assertions="2" time="0.000121"/>
+      <testcase name="testTokenUsesTimingSafeComparison" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="362" assertions="2" time="0.000141"/>
+      <testcase name="testTokenIncludesTimestamp" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="380" assertions="2" time="0.000121"/>
+      <testcase name="testOldTokensAreRejected" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="392" assertions="1" time="0.000113"/>
+      <testcase name="testFreshTokensAreAccepted" class="CsrfMiddlewareTest" classname="CsrfMiddlewareTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\CsrfMiddlewareTest.php" line="408" assertions="1" time="0.000115"/>
+    </testsuite>
+    <testsuite name="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" tests="22" assertions="37" errors="0" warnings="0" failures="0" skipped="0" time="0.147390">
+      <testcase name="testInitializeInitializesAllServices" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="47" assertions="2" time="0.017980"/>
+      <testcase name="testInitializeIsIdempotent" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="60" assertions="1" time="0.003190"/>
+      <testcase name="testDbReturnsPDOInstance" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="77" assertions="1" time="0.027228"/>
+      <testcase name="testDbReturnsSingleton" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="90" assertions="1" time="0.002349"/>
+      <testcase name="testAdminAuthReturnsAdminAuthInstance" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="104" assertions="1" time="0.002365"/>
+      <testcase name="testAdminAuthReturnsSingleton" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="117" assertions="1" time="0.025013"/>
+      <testcase name="testUserAuthReturnsUserAuthInstance" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="131" assertions="1" time="0.002180"/>
+      <testcase name="testUserAuthReturnsSingleton" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="144" assertions="1" time="0.001728"/>
+      <testcase name="testDatabaseReturnsDatabaseInstance" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="158" assertions="1" time="0.001740"/>
+      <testcase name="testDatabaseReturnsSingleton" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="171" assertions="1" time="0.002188"/>
+      <testcase name="testCurrencyServiceReturnsCurrencyServiceInstance" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="185" assertions="1" time="0.002113"/>
+      <testcase name="testCurrencyServiceReturnsSingleton" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="198" assertions="1" time="0.020177"/>
+      <testcase name="testAllServicesShareSamePDOConnection" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="212" assertions="3" time="0.013312"/>
+      <testcase name="testResetClearsAllServices" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="233" assertions="3" time="0.004602"/>
+      <testcase name="testIsInitializedReturnsCorrectState" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="257" assertions="3" time="0.002103"/>
+      <testcase name="testCallingDbTriggersInitialization" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="274" assertions="3" time="0.001755"/>
+      <testcase name="testCallingAdminAuthTriggersInitialization" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="288" assertions="3" time="0.005647"/>
+      <testcase name="testCallingUserAuthTriggersInitialization" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="302" assertions="3" time="0.002248"/>
+      <testcase name="testInitializeThrowsExceptionOnConnectionFailure" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="316" assertions="1" time="0.000198"/>
+      <testcase name="testMultipleInitializeCallsDontRecreateServices" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="330" assertions="2" time="0.002213"/>
+      <testcase name="testDatabaseReturnsInstance" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="350" assertions="1" time="0.002220"/>
+      <testcase name="testResetCanBeCalledMultipleTimes" class="ServicesTest" classname="ServicesTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ServicesTest.php" line="363" assertions="2" time="0.004839"/>
+    </testsuite>
+    <testsuite name="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" tests="19" assertions="24" errors="0" warnings="0" failures="0" skipped="3" time="0.003075">
+      <testcase name="testEnsureSessionStartsSession" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="57" assertions="2" time="0.000130"/>
+      <testcase name="testEnsureSessionStartedIsIdempotent" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="76" assertions="1" time="0.000136"/>
+      <testcase name="testSessionFlashSetsMessage" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="95" assertions="3" time="0.000129"/>
+      <testcase name="testSessionGetFlashRetrievesAndClearsMessage" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="108" assertions="2" time="0.000114"/>
+      <testcase name="testSessionGetFlashReturnsNullForNonExistentKey" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="122" assertions="1" time="0.000108"/>
+      <testcase name="testSessionHasFlashReturnsTrueWhenExists" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="133" assertions="1" time="0.000096"/>
+      <testcase name="testSessionHasFlashReturnsFalseWhenNotExists" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="144" assertions="1" time="0.000103"/>
+      <testcase name="testRegenerateSessionCreatesNewSessionId" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="153" assertions="0" time="0.000950">
+        <skipped/>
+      </testcase>
+      <testcase name="testDestroySessionClearsAllData" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="177" assertions="0" time="0.000114">
+        <skipped/>
+      </testcase>
+      <testcase name="testDestroySessionRemovesCookie" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="202" assertions="0" time="0.000118">
+        <skipped/>
+      </testcase>
+      <testcase name="testSessionSetSetsVariable" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="226" assertions="1" time="0.000127"/>
+      <testcase name="testSessionGetRetrievesVariable" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="237" assertions="1" time="0.000173"/>
+      <testcase name="testSessionGetReturnsDefaultWhenNotExists" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="250" assertions="1" time="0.000095"/>
+      <testcase name="testSessionGetReturnsNullWhenNotExistsAndNoDefault" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="261" assertions="1" time="0.000097"/>
+      <testcase name="testSessionRemoveRemovesVariable" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="272" assertions="1" time="0.000129"/>
+      <testcase name="testMultipleFlashMessagesCanBeStored" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="285" assertions="3" time="0.000137"/>
+      <testcase name="testFlashMessagesAreIsolatedPerKey" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="300" assertions="1" time="0.000104"/>
+      <testcase name="testSessionDataPersists" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="312" assertions="2" time="0.000104"/>
+      <testcase name="testComplexDataTypesCanBeStored" class="SessionHelperTest" classname="SessionHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\SessionHelperTest.php" line="327" assertions="2" time="0.000110"/>
+    </testsuite>
+    <testsuite name="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" tests="38" assertions="51" errors="0" warnings="0" failures="6" skipped="0" time="1.016402">
+      <testcase name="testUrlGeneratesFullUrlWithHttp" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="74" assertions="1" time="0.000156"/>
+      <testcase name="testUrlGeneratesFullUrlWithHttps" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="90" assertions="1" time="0.000206">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">UrlHelperTest::testUrlGeneratesFullUrlWithHttps
+Failed asserting that two strings are equal.
+--- Expected
++++ Actual
+@@ @@
+-'https://localhost/admin/login/'
++'http://localhost/admin/login/'
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php:96</failure>
+      </testcase>
+      <testcase name="testUrlHandlesSubdirectoryDeployment" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="104" assertions="1" time="0.000234">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">UrlHelperTest::testUrlHandlesSubdirectoryDeployment
+Failed asserting that two strings are equal.
+--- Expected
++++ Actual
+@@ @@
+-'http://localhost/CannaBuddy.shop/admin/login/'
++'http://localhost/admin/login/'
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php:112</failure>
+      </testcase>
+      <testcase name="testUrlTrimsLeadingSlashesFromPath" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="120" assertions="3" time="0.000199"/>
+      <testcase name="testUrlWithEmptyPathReturnsBaseUrl" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="139" assertions="1" time="0.000099"/>
+      <testcase name="testUrlCachesBaseUrl" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="154" assertions="1" time="0.000119"/>
+      <testcase name="testRurlGeneratesRelativeUrl" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="170" assertions="1" time="0.000112"/>
+      <testcase name="testRurlIncludesBasePathForSubdirectory" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="185" assertions="1" time="0.000200">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">UrlHelperTest::testRurlIncludesBasePathForSubdirectory
+Failed asserting that two strings are equal.
+--- Expected
++++ Actual
+@@ @@
+-'/CannaBuddy.shop/admin/login/'
++'/admin/login/'
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php:192</failure>
+      </testcase>
+      <testcase name="testAdminUrlGeneratesAdminUrl" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="200" assertions="1" time="0.000144"/>
+      <testcase name="testAdminUrlWithSubdirectoryDeployment" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="215" assertions="1" time="0.000181">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">UrlHelperTest::testAdminUrlWithSubdirectoryDeployment
+Failed asserting that two strings are equal.
+--- Expected
++++ Actual
+@@ @@
+-'http://localhost/CannaBuddy.shop/admin/dashboard/'
++'http://localhost/admin/dashboard/'
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php:222</failure>
+      </testcase>
+      <testcase name="testUserUrlGeneratesUserUrl" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="230" assertions="1" time="0.000130"/>
+      <testcase name="testShopUrlGeneratesShopUrl" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="245" assertions="1" time="0.000106"/>
+      <testcase name="testProductUrlGeneratesProductUrl" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="260" assertions="1" time="0.000106"/>
+      <testcase name="testAssetUrlGeneratesAssetUrl" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="275" assertions="1" time="0.000100"/>
+      <testcase name="testAssetPathGeneratesRelativeAssetPath" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="290" assertions="1" time="0.000096"/>
+      <testcase name="testSafeHtmlEscapesHtmlEntities" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="301" assertions="2" time="0.000115"/>
+      <testcase name="testSafeHtmlHandlesNullValues" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="313" assertions="1" time="0.000093"/>
+      <testcase name="testSafeHtmlHandlesEmptyStrings" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="324" assertions="1" time="0.000098"/>
+      <testcase name="testValidateRedirectAllowsValidRelativePaths" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="335" assertions="1" time="0.000113"/>
+      <testcase name="testValidateRedirectAllowsEmptyRedirect" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="346" assertions="1" time="0.000103"/>
+      <testcase name="testValidateRedirectBlocksProtocolRelativeUrls" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="357" assertions="1" time="0.000123"/>
+      <testcase name="testValidateRedirectBlocksExternalUrls" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="368" assertions="1" time="0.000119"/>
+      <testcase name="testValidateRedirectBlocksPathsWithoutSlash" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="379" assertions="1" time="0.000120"/>
+      <testcase name="testValidateRedirectBlocksNonWhitelistedPaths" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="390" assertions="1" time="0.000125"/>
+      <testcase name="testCsrfTokenGeneratesToken" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="401" assertions="4" time="0.000137"/>
+      <testcase name="testCsrfTokenReturnsSameToken" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="416" assertions="1" time="0.000115"/>
+      <testcase name="testCsrfTokenStoresInSession" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="430" assertions="2" time="0.000111"/>
+      <testcase name="testCsrfTokenStoresCreationTime" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="444" assertions="2" time="0.000193"/>
+      <testcase name="testCsrfFieldGeneratesHtmlInput" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="458" assertions="5" time="0.000163"/>
+      <testcase name="testVerifyCsrfTokenAcceptsValidToken" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="475" assertions="1" time="0.000168"/>
+      <testcase name="testVerifyCsrfTokenRejectsInvalidToken" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="490" assertions="1" time="0.000142"/>
+      <testcase name="testVerifyCsrfTokenUsesPostTokenByDefault" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="504" assertions="1" time="0.000108"/>
+      <testcase name="testVerifyCsrfTokenRejectsExpiredTokens" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="520" assertions="1" time="0.000096"/>
+      <testcase name="testVerifyCsrfTokenClearsExpiredTokens" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="536" assertions="2" time="0.000105"/>
+      <testcase name="testCsrfRegenerateCreatesNewToken" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="553" assertions="1" time="0.000128"/>
+      <testcase name="testCsrfRegenerateUpdatesCreationTime" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="570" assertions="1" time="1.011212"/>
+      <testcase name="testGetBaseUrlHandlesCustomPort" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="589" assertions="1" time="0.000336">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">UrlHelperTest::testGetBaseUrlHandlesCustomPort
+Failed asserting that two strings are equal.
+--- Expected
++++ Actual
+@@ @@
+-'http://localhost:8080/test/'
++'http://localhost/test/'
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php:596</failure>
+      </testcase>
+      <testcase name="testUrlWithProductionDomain" class="UrlHelperTest" classname="UrlHelperTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php" line="604" assertions="1" time="0.000192">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">UrlHelperTest::testUrlWithProductionDomain
+Failed asserting that two strings are equal.
+--- Expected
++++ Actual
+@@ @@
+-'https://cannakingdom.ky/admin/'
++'http://localhost/admin/'
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\UrlHelperTest.php:612</failure>
+      </testcase>
+    </testsuite>
+    <testsuite name="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" tests="60" assertions="87" errors="1" warnings="0" failures="1" skipped="0" time="0.012101">
+      <testcase name="testStringValidationWithValidInput" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="19" assertions="2" time="0.000122"/>
+      <testcase name="testStringValidationTrimsWhitespace" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="31" assertions="1" time="0.000108"/>
+      <testcase name="testStringValidationEscapesHTML" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="42" assertions="2" time="0.000111"/>
+      <testcase name="testStringValidationEnforcesMaxLength" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="54" assertions="2" time="0.000665"/>
+      <testcase name="testStringValidationRequiresValueByDefault" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="67" assertions="2" time="0.000098"/>
+      <testcase name="testStringValidationAllowsEmptyWhenNotRequired" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="79" assertions="1" time="0.000143"/>
+      <testcase name="testEmailValidationWithValidEmail" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="90" assertions="1" time="0.002607"/>
+      <testcase name="testEmailValidationRejectsInvalidEmail" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="101" assertions="2" time="0.000178"/>
+      <testcase name="testEmailValidationTrimsWhitespace" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="113" assertions="1" time="0.000149"/>
+      <testcase name="testEmailValidationRequiresValueByDefault" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="124" assertions="2" time="0.000113"/>
+      <testcase name="testEmailValidationAllowsEmptyWhenNotRequired" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="136" assertions="1" time="0.000083"/>
+      <testcase name="testIntegerValidationWithValidInteger" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="147" assertions="2" time="0.000084"/>
+      <testcase name="testIntegerValidationRejectsNonNumeric" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="159" assertions="2" time="0.000099"/>
+      <testcase name="testIntegerValidationEnforcesMinimum" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="171" assertions="2" time="0.000087"/>
+      <testcase name="testIntegerValidationEnforcesMaximum" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="183" assertions="2" time="0.000113"/>
+      <testcase name="testIntegerValidationAcceptsZero" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="195" assertions="1" time="0.000107"/>
+      <testcase name="testIntegerValidationAllowsEmptyWhenNotRequired" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="206" assertions="1" time="0.000092"/>
+      <testcase name="testPriceValidationWithValidPrice" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="217" assertions="2" time="0.000125"/>
+      <testcase name="testPriceValidationRejectsNonNumeric" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="229" assertions="2" time="0.000109"/>
+      <testcase name="testPriceValidationRejectsNegativePrices" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="241" assertions="2" time="0.000108"/>
+      <testcase name="testPriceValidationRoundsToTwoDecimals" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="253" assertions="1" time="0.000944">
+        <error type="TypeError">ValidatorTest::testPriceValidationRoundsToTwoDecimals
+TypeError: substr(): Argument #1 ($string) must be of type string, false given
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php:257</error>
+      </testcase>
+      <testcase name="testPriceValidationAllowsZero" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="265" assertions="1" time="0.000110"/>
+      <testcase name="testSlugValidationWithValidSlug" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="276" assertions="1" time="0.000094"/>
+      <testcase name="testSlugValidationConvertsToLowercase" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="287" assertions="1" time="0.000232"/>
+      <testcase name="testSlugValidationReplacesSpacesWithHyphens" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="298" assertions="1" time="0.000135"/>
+      <testcase name="testSlugValidationRemovesSpecialCharacters" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="309" assertions="1" time="0.000116"/>
+      <testcase name="testSlugValidationTrimsHyphens" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="320" assertions="1" time="0.000120"/>
+      <testcase name="testBooleanValidationWithTrueValue" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="331" assertions="1" time="0.000124"/>
+      <testcase name="testBooleanValidationWithFalseValue" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="342" assertions="1" time="0.000118"/>
+      <testcase name="testBooleanValidationWithNumericOne" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="353" assertions="1" time="0.000144"/>
+      <testcase name="testBooleanValidationWithNumericZero" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="364" assertions="1" time="0.000222"/>
+      <testcase name="testBooleanValidationWithStringTrue" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="375" assertions="1" time="0.000139"/>
+      <testcase name="testBooleanValidationWithStringFalse" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="386" assertions="1" time="0.000150"/>
+      <testcase name="testBooleanValidationWithStringOne" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="397" assertions="1" time="0.000140"/>
+      <testcase name="testBooleanValidationWithStringYes" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="408" assertions="1" time="0.000134"/>
+      <testcase name="testBooleanValidationWithStringOn" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="419" assertions="1" time="0.000104"/>
+      <testcase name="testBooleanValidationUsesDefaultForInvalidValues" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="430" assertions="1" time="0.000111">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">ValidatorTest::testBooleanValidationUsesDefaultForInvalidValues
+Failed asserting that false is true.
+
+C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php:433</failure>
+      </testcase>
+      <testcase name="testArrayValidationWithValidArray" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="441" assertions="1" time="0.000089"/>
+      <testcase name="testArrayValidationRejectsNonArray" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="453" assertions="2" time="0.000096"/>
+      <testcase name="testArrayValidationAllowsEmptyWhenNotRequired" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="465" assertions="1" time="0.000080"/>
+      <testcase name="testPhoneValidationWithValidPhone" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="476" assertions="1" time="0.000088"/>
+      <testcase name="testPhoneValidationRemovesNonNumericCharacters" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="487" assertions="1" time="0.000079"/>
+      <testcase name="testPhoneValidationRejectsTooShortNumbers" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="498" assertions="2" time="0.000086"/>
+      <testcase name="testPhoneValidationRejectsTooLongNumbers" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="510" assertions="2" time="0.000085"/>
+      <testcase name="testPhoneValidationAllowsNullWhenNotRequired" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="522" assertions="1" time="0.000079"/>
+      <testcase name="testUrlValidationWithValidUrl" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="533" assertions="1" time="0.000104"/>
+      <testcase name="testUrlValidationRejectsInvalidUrl" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="544" assertions="2" time="0.000098"/>
+      <testcase name="testDateValidationWithValidDate" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="556" assertions="1" time="0.000639"/>
+      <testcase name="testDateValidationRejectsInvalidFormat" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="567" assertions="2" time="0.000167"/>
+      <testcase name="testDateValidationAllowsNullWhenNotRequired" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="579" assertions="1" time="0.000135"/>
+      <testcase name="testEnumValidationWithValidValue" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="590" assertions="1" time="0.000376"/>
+      <testcase name="testEnumValidationRejectsInvalidValue" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="601" assertions="2" time="0.000212"/>
+      <testcase name="testTextValidationWithLongText" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="613" assertions="1" time="0.000178"/>
+      <testcase name="testTextValidationEnforcesMaxLength" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="625" assertions="2" time="0.000202"/>
+      <testcase name="testValidateMethodWithMultipleFields" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="637" assertions="3" time="0.000157"/>
+      <testcase name="testValidateMethodThrowsExceptionOnFailure" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="662" assertions="2" time="0.000165"/>
+      <testcase name="testValidateMethodIncludesFieldErrors" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="682" assertions="3" time="0.000229"/>
+      <testcase name="testHtmlSanitizationPreservesAllowedTags" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="712" assertions="2" time="0.000113"/>
+      <testcase name="testHtmlSanitizationRemovesDisallowedTags" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="724" assertions="1" time="0.000090"/>
+      <testcase name="testHtmlSanitizationEscapesAllWhenNoAllowedTags" class="ValidatorTest" classname="ValidatorTest" file="C:\MAMP\htdocs\CannaBuddy.shop\tests\ValidatorTest.php" line="735" assertions="2" time="0.000116"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

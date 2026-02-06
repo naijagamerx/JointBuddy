@@ -1,0 +1,1 @@
+Failed to fetch phpqrcode/phpqrcode@master from GitHub.
