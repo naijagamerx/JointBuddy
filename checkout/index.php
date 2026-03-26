@@ -715,7 +715,8 @@ include __DIR__ . '/../includes/header.php';
                                     <?php endif; ?>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <!-- First Row: City & Province -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
                                         <input type="text" name="city" required
@@ -756,6 +757,10 @@ include __DIR__ . '/../includes/header.php';
                                             <p class="text-red-500 text-sm mt-1"><?php echo $errors['province'] ?></p>
                                         <?php endif; ?>
                                     </div>
+                                </div>
+
+                                <!-- Second Row: Postal Code & Country -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Postal Code *</label>
                                         <input type="text" name="postal_code" required
