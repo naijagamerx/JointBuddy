@@ -86,6 +86,7 @@ if (empty($users)) {
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Verified</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Actions</th>
@@ -115,6 +116,21 @@ if (empty($users)) {
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900">' . safe_html($user['phone'] ?? 'N/A') . '</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            '; if (!empty($user['email_verified']) && $user['email_verified'] == 1) {
+                                $content .= '<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                    <i class="fas fa-check-circle mr-1"></i>Verified
+                                </span>';
+                            } else {
+                                $content .= '<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+                                    <i class="fas fa-times-circle mr-1"></i>Not Verified
+                                </span>
+                                <a href="' . adminUrl('/users/verify/?id=' . $user['id']) . '" class="ml-2 text-green-600 hover:text-green-700 text-xs underline" title="Verify Email">
+                                    <i class="fas fa-envelope"></i>
+                                </a>';
+                            }
+                            $content .= '
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>

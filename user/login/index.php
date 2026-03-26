@@ -34,6 +34,16 @@ if (!$error500) {
 }
 
 $errorMessage = '';
+$successMessage = '';
+
+// Check for success messages
+if (isset($_SESSION['registration_success'])) {
+    $successMessage = $_SESSION['registration_success'];
+    unset($_SESSION['registration_success']);
+} elseif (isset($_GET['message']) && $_GET['message'] === 'registered') {
+    $successMessage = 'Registration successful! Please login to your new account.';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error500 && $userAuth) {
     try {
         CsrfMiddleware::validate();
@@ -153,6 +163,13 @@ sendSecurityHeaders();
             <h1 class="text-3xl font-semibold text-gray-900 mb-2">Welcome Back</h1>
             <p class="text-gray-500">Log in to manage your collection and premium orders.</p>
         </div>
+
+        <?php if ($successMessage): ?>
+            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
+                <span class="material-symbols-outlined text-green-500">check_circle</span>
+                <span class="text-sm"><?= htmlspecialchars($successMessage) ?></span>
+            </div>
+        <?php endif; ?>
 
         <?php if ($errorMessage): ?>
             <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">

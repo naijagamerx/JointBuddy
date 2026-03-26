@@ -54,7 +54,14 @@ class AuthMiddleware {
     public static function isAdminLoggedIn(): bool {
         try {
             $adminAuth = Services::adminAuth();
-            return $adminAuth && $adminAuth->isLoggedIn();
+            if (!$adminAuth) return false;
+            
+            // If not logged in via session, check for remember me cookie
+            if (!$adminAuth->isLoggedIn()) {
+                return $adminAuth->checkRememberMe();
+            }
+            
+            return true;
         } catch (Exception $e) {
             return false;
         }

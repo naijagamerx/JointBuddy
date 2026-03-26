@@ -38,6 +38,14 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
+// Check for remember me cookie if not already logged in
+if ($adminAuth && !$adminAuth->isLoggedIn()) {
+    if ($adminAuth->checkRememberMe()) {
+        error_log("DEBUG: Remember me successful, redirecting to dashboard");
+        redirect('/admin/');
+    }
+}
+
 // If already logged in, redirect to dashboard
 if ($adminAuth && $adminAuth->isLoggedIn() && $adminAuth->verifySessionFingerprint()) {
     error_log("DEBUG: User already logged in, redirecting to dashboard");
@@ -88,7 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset(
         error_log('Admin login CSRF validation failed');
     } else {
         $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $result = $adminAuth->login($_POST['username'], $_POST['password'], $ip_address);
+        $remember = isset($_POST['remember']);
+        $result = $adminAuth->login($_POST['username'], $_POST['password'], $ip_address, $remember);
 
         if ($result['success']) {
             csrf_regenerate(); // Regenerate CSRF token after successful login

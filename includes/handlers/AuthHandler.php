@@ -86,6 +86,10 @@ class AuthHandler implements HandlerInterface {
                 // Log error but don't fail registration
                 error_log("Failed to send welcome email to {$userData['email']}: " . $e->getMessage());
             }
+
+            // Redirect to login page
+            header('Location: ' . url('user/login/?message=registered'));
+            exit;
         } else {
             $_SESSION['registration_error'] = $result['message'] ?? 'Registration failed.';
         }

@@ -86,6 +86,17 @@ try {
         }
     }
     
+    // 6. Admin remember tokens table
+    $db->exec("CREATE TABLE IF NOT EXISTS admin_remember_tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        admin_id INT NOT NULL,
+        token_hash VARCHAR(64) NOT NULL UNIQUE,
+        expires_at DATETIME NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE CASCADE
+    )");
+    echo "- Created/verified admin_remember_tokens table\n";
+    
     echo "Migrations COMPLETED successfully!\n";
     
 } catch (Exception $e) {

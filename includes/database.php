@@ -94,8 +94,8 @@ class AdminAuth {
         $this->db = $database;
     }
     
-    public function login($username, $password, $ip_address = null) {
-        error_log("DEBUG: AdminAuth::login called for user: " . $username);
+    public function login($username, $password, $ip_address = null, $remember = false) {
+        error_log("DEBUG: AdminAuth::login called for user: " . $username . ", remember: " . ($remember ? 'true' : 'false'));
         
         $stmt = $this->db->prepare("SELECT * FROM admin_users WHERE (username = ? OR email = ?) AND is_active = 1");
         $stmt->execute([$username, $username]);
@@ -137,6 +137,11 @@ class AdminAuth {
         $_SESSION['admin_role'] = $admin['role'];
         $_SESSION['admin_logged_in'] = true;
         
+        // Handle Remember Me
+        if ($remember) {
+            $this->createRememberToken($admin['id']);
+        }
+        
         // Security: Set session fingerprint
         $this->setSessionFingerprint();
         
@@ -146,6 +151,77 @@ class AdminAuth {
         error_log("DEBUG: admin_fingerprint: " . ($_SESSION['admin_fingerprint'] ?? 'NOT SET'));
 
         return ['success' => true, 'admin' => $admin];
+    }
+
+    /**
+     * Create a persistent remember token for an admin
+     */
+    private function createRememberToken($adminId) {
+        $token = bin2hex(random_bytes(32));
+        $tokenHash = hash('sha256', $token);
+        $expires = date('Y-m-d H:i:s', strtotime('+30 days'));
+
+        $stmt = $this->db->prepare("INSERT INTO admin_remember_tokens (admin_id, token_hash, expires_at) VALUES (?, ?, ?)");
+        $stmt->execute([$adminId, $tokenHash, $expires]);
+
+        // Set cookie: admin_id:token
+        $cookieValue = $adminId . ':' . $token;
+        setcookie('admin_remember', $cookieValue, time() + (30 * 24 * 60 * 60), '/', '', false, true);
+    }
+
+    /**
+     * Check for remember me cookie and auto-login if valid
+     */
+    public function checkRememberMe() {
+        if ($this->isLoggedIn()) {
+            return true;
+        }
+
+        if (!isset($_COOKIE['admin_remember'])) {
+            return false;
+        }
+
+        $parts = explode(':', $_COOKIE['admin_remember'], 2);
+        if (count($parts) !== 2) {
+            return false;
+        }
+
+        $adminId = (int)$parts[0];
+        $token = $parts[1];
+        $tokenHash = hash('sha256', $token);
+
+        $stmt = $this->db->prepare("
+            SELECT t.*, a.username, a.role 
+            FROM admin_remember_tokens t 
+            JOIN admin_users a ON t.admin_id = a.id 
+            WHERE t.admin_id = ? AND t.token_hash = ? AND t.expires_at > NOW() AND a.is_active = 1
+        ");
+        $stmt->execute([$adminId, $tokenHash]);
+        $tokenData = $stmt->fetch();
+
+        if ($tokenData) {
+            // Valid token, log them in
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            session_regenerate_id(true);
+
+            $_SESSION['admin_id'] = $tokenData['admin_id'];
+            $_SESSION['admin_username'] = $tokenData['username'];
+            $_SESSION['admin_role'] = $tokenData['role'];
+            $_SESSION['admin_logged_in'] = true;
+            
+            $this->setSessionFingerprint();
+            
+            // Refresh the token (rotate it)
+            $stmt = $this->db->prepare("DELETE FROM admin_remember_tokens WHERE id = ?");
+            $stmt->execute([$tokenData['id']]);
+            $this->createRememberToken($tokenData['admin_id']);
+            
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -212,8 +288,21 @@ class AdminAuth {
         
         $adminId = $_SESSION['admin_id'] ?? null;
         if ($adminId) {
-            // Optional: Log logout event if logSecurityEvent exists for admin
+            // Clear remember tokens for this admin
+            if (isset($_COOKIE['admin_remember'])) {
+                $parts = explode(':', $_COOKIE['admin_remember'], 2);
+                if (count($parts) === 2) {
+                    $token = $parts[1];
+                    $tokenHash = hash('sha256', $token);
+                    $stmt = $this->db->prepare("DELETE FROM admin_remember_tokens WHERE admin_id = ? AND token_hash = ?");
+                    $stmt->execute([$adminId, $tokenHash]);
+                }
+            }
         }
+
+        // Clear cookie
+        setcookie('admin_remember', '', time() - 3600, '/');
+
         unset($_SESSION['admin_id']);
         unset($_SESSION['admin_username']);
         unset($_SESSION['admin_role']);
