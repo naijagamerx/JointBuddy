@@ -298,6 +298,11 @@ define('HEADER_INCLUDED', true);
     <?php endif; ?>
 
     </head>
+<script>
+    // Global configuration for JavaScript
+    window.APP_BASE_URL = '<?= rtrim(url('/'), '/') ?>';
+    window.APP_INCLUDES_URL = '<?= rtrim(url('/includes/'), '/') ?>';
+</script>
 <body class="min-h-screen bg-gray-100">
 <?php
 $headerClasses = 'bg-white shadow-md';

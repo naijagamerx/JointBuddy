@@ -35,25 +35,9 @@
      * Load location data from server
      */
     async function loadLocationData() {
-        // Determine the base URL
-        let baseUrl = '';
-        const scriptPath = document.querySelector('script[src*="checkout-location.js"]')?.src || '';
-
-        if (scriptPath) {
-            // Extract base URL from script path
-            baseUrl = scriptPath.replace(/\/assets\/js\/checkout-location\.js.*$/, '');
-        } else {
-            // Fallback: use current path and navigate up
-            const currentPath = window.location.pathname;
-            // If we're in checkout/, go up to root, then to includes
-            if (currentPath.includes('/checkout/')) {
-                baseUrl = window.location.origin + currentPath.replace(/\/checkout\/.*$/, '');
-            } else {
-                baseUrl = window.location.origin;
-            }
-        }
-
-        const url = baseUrl + '/includes/location_data.php?action=json';
+        // Use global base URL from header.php
+        const baseUrl = window.APP_INCLUDES_URL || '/includes';
+        const url = baseUrl + '/location_data.php?action=json';
 
         const response = await fetch(url);
         if (!response.ok) {
