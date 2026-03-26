@@ -317,7 +317,7 @@ $content .= '
     </div>
 </div>';
 
-echo adminSidebarWrapper('Inquiries', $content, 'products');
+echo adminSidebarWrapper('Inquiries', $content, 'inquiries');
 ?>
 
 <script>
@@ -421,4 +421,4 @@ document.getElementById("statusModal").addEventListener("click", function(e) {
 </script>';
 
 // Render the page with sidebar
-echo adminSidebarWrapper('Product Inquiries', $content, 'products');
+echo adminSidebarWrapper('Product Inquiries', $content, 'inquiries');

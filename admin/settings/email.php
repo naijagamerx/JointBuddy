@@ -2,40 +2,122 @@
 // Include bootstrap (loads all core services)
 require_once __DIR__ . '/../../includes/bootstrap.php';
 
-// Require authentication (admin only)
+// Handle Test Email AJAX Request FIRST (before auth check to prevent HTML redirects)
+if (isset($_GET['action']) && $_GET['action'] === 'get_csrf_token') {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => true,
+        'csrf_token' => $_SESSION['csrf_token'] ?? ''
+    ]);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    // Handle test email request
+    if ($_POST['action'] === 'test_smtp') {
+    // DEBUG: Log request details
+    error_log("=== AJAX Test Email Request ===");
+    error_log("POST csrf_token: " . ($_POST['csrf_token'] ?? 'NOT SET'));
+    error_log("SESSION csrf_token: " . ($_SESSION['csrf_token'] ?? 'NOT SET'));
+    error_log("Session ID: " . session_id());
+
+    // Check if admin is logged in for AJAX
+    if (!Services::adminAuth()->isLoggedIn()) {
+        error_log("Admin not logged in");
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Session expired. Please log in again.']);
+        exit;
+    }
+
+    // Validate CSRF token
+    $submittedToken = $_POST['csrf_token'] ?? '';
+    $sessionToken = $_SESSION['csrf_token'] ?? '';
+
+    // DEBUG: Compare token values
+    error_log("Submitted token length: " . strlen($submittedToken));
+    error_log("Session token length: " . strlen($sessionToken));
+    $tokensMatch = hash_equals($sessionToken, $submittedToken);
+    error_log("Tokens equal: " . ($tokensMatch ? 'YES' : 'NO'));
+
+    if (!$tokensMatch) {
+        error_log("CSRF validation failed");
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Security token invalid. Please refresh the page.',
+            'debug' => [
+                'submitted_token' => $submittedToken,
+                'session_token' => $sessionToken,
+                'tokens_match' => $tokensMatch
+            ]
+        ]);
+        exit;
+    }
+
+    error_log("CSRF validation passed");
+    header('Content-Type: application/json');
+
+    // Start output buffering to catch any PHP errors
+    ob_start();
+
+    try {
+        $db = Services::db();
+        $to = $_POST['test_email'] ?? '';
+
+        if (empty($to)) {
+            ob_end_clean();
+            echo json_encode(['success' => false, 'message' => 'Please enter a valid email address.']);
+            exit;
+        }
+
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            ob_end_clean();
+            echo json_encode(['success' => false, 'message' => 'Please enter a valid email format.']);
+            exit;
+        }
+
+        require_once __DIR__ . '/../../includes/email_service.php';
+        $emailService = new EmailService($db);
+
+        if ($emailService->sendTestEmail($to)) {
+            ob_end_clean();
+            echo json_encode(['success' => true, 'message' => 'Test email sent successfully! Check your inbox.']);
+        } else {
+            $error = $emailService->getError() ?? 'Unknown error';
+            ob_end_clean();
+            echo json_encode(['success' => false, 'message' => 'Failed to send test email: ' . $error]);
+        }
+    } catch (Exception $e) {
+        ob_end_clean();
+        error_log("Test email error: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
+    } catch (Error $e) {
+        ob_end_clean();
+        error_log("Test email fatal error: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Server error occurred. Check error logs.']);
+    }
+    exit;
+}
+}
+
+// Require authentication (admin only) - for regular page loads
 AuthMiddleware::requireAdmin();
 
 // Get admin auth and database connection from services
 $adminAuth = Services::adminAuth();
 $db = Services::db();
 
-// Handle Test Email AJAX Request
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'test_smtp') {
-    CsrfMiddleware::validate();
-    header('Content-Type: application/json');
-    $to = $_POST['test_email'] ?? '';
-    
-    if (empty($to)) {
-        echo json_encode(['success' => false, 'message' => 'Please enter a valid email address.']);
-        exit;
-    }
-    
-    require_once __DIR__ . '/../../includes/email_service.php';
-    $emailService = new EmailService($db);
-    
-    if ($emailService->sendTestEmail($to)) {
-        echo json_encode(['success' => true, 'message' => 'Test email sent successfully! Check your inbox.']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to send test email: ' . $emailService->getError()]);
-    }
-    exit;
-}
-
 // Get current email settings
 $settings = [];
 if ($db) {
     try {
-        $stmt = $db->query("SELECT * FROM settings WHERE setting_key LIKE 'email_%' ORDER BY setting_key ASC");
+        $stmt = $db->query("
+            SELECT * FROM settings
+            WHERE setting_key LIKE 'email_%'
+               OR setting_key LIKE 'smtp_%'
+               OR setting_key IN ('from_email', 'from_name')
+            ORDER BY setting_key ASC
+        ");
         $email_settings = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Convert to key-value array
@@ -75,8 +157,8 @@ if ($_POST && $adminAuth && $db) {
         
         // Define all possible settings for this page to handle unchecked checkboxes
         $all_keys = [
-            'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_encryption',
-            'from_email', 'from_name', 'new_order_notifications', 
+            'email_method', 'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_encryption',
+            'from_email', 'from_name', 'new_order_notifications',
             'customer_registration_notifications', 'order_status_notifications'
         ];
         
@@ -105,6 +187,11 @@ if ($_POST && $adminAuth && $db) {
         $_SESSION['error'] = 'Error updating settings. Please try again.';
     }
 }
+
+// DEBUG: Log page load token
+error_log("=== EMAIL PAGE LOAD ===");
+error_log("Session ID: " . session_id());
+error_log("CSRF Token at page load: " . ($_SESSION['csrf_token'] ?? 'NOT SET'));
 
 // Generate email settings content
 $content = '
@@ -170,6 +257,10 @@ $content .= '
             <p class="text-sm text-gray-600">Configure SMTP server settings for outgoing emails</p>
         </div>
         <div class="px-6 py-6 space-y-6">
+            ' . adminFormSelect('Email Sending Method', 'email_method', $settings['email_method'], [
+                'smtp' => 'SMTP (Recommended)',
+                'mail' => 'PHP mail() function'
+            ], true) . '
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 ' . adminFormInput('SMTP Host', 'smtp_host', $settings['smtp_host'], 'text', true, 'e.g., smtp.gmail.com, smtp.mailtrap.io') . '
                 ' . adminFormInput('SMTP Port', 'smtp_port', $settings['smtp_port'], 'number', true, '587', ['min' => '1', 'max' => '65535']) . '
@@ -251,6 +342,7 @@ $content .= '
     </div>
     <div class="px-6 py-6">
         <form onsubmit="testEmail(event)" class="space-y-4">
+            ' . csrf_field() . '
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 ' . adminFormInput('Test Email Address', 'test_email', '', 'email', true, 'recipient@example.com') . '
             </div>
@@ -266,24 +358,69 @@ $content .= '
 <script>
 function testEmail(event) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
     formData.append("action", "test_smtp");
     const testEmail = formData.get("test_email");
+    const csrfToken = formData.get("csrf_token");
     const resultDiv = document.getElementById("testEmailResult");
-    
+
+    // DEBUG: Log to console
+    console.log("=== Test Email Debug ===");
+    console.log("CSRF Token:", csrfToken);
+    console.log("Test Email:", testEmail);
+    console.log("Session Cookie:", document.cookie);
+    console.log("FormData entries:");
+    for (let [key, value] of formData.entries()) {
+        console.log("  " + key + ":", value);
+    }
+
     // Show loading
     resultDiv.innerHTML = \'<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Sending test email...</div>\';
     resultDiv.classList.remove("hidden");
-    
-    // Call API
-    fetch(window.location.href, {
-        method: "POST",
-        body: formData
+
+    // First, get a fresh CSRF token via GET
+    fetch(window.location.pathname + "?action=get_csrf_token", {
+        method: "GET",
+        headers: {
+            "Accept": "application/json"
+        },
+        credentials: "same-origin"
     })
     .then(response => response.json())
+    .then(tokenData => {
+        console.log("Fresh CSRF token:", tokenData.csrf_token);
+
+        // Update formData with fresh token
+        formData.set("csrf_token", tokenData.csrf_token);
+
+        // Now send the test email
+        return fetch(window.location.href, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: formData,
+            credentials: "same-origin"
+        });
+    })
+    .then(response => {
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers.get("content-type"));
+        return response.text().then(text => {
+            console.log("Raw response:", text.substring(0, 500));
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error("JSON parse error:", e);
+                throw new Error("Invalid JSON response: " + text.substring(0, 200));
+            }
+        });
+    })
     .then(data => {
+        console.log("Parsed data:", data);
         if (data.success) {
             resultDiv.innerHTML = \'<div class="text-green-600 bg-green-50 p-3 rounded-lg border border-green-200"><i class="fas fa-check-circle mr-2"></i>\' + data.message + \'</div>\';
         } else {
@@ -291,6 +428,7 @@ function testEmail(event) {
         }
     })
     .catch(error => {
+        console.error("Fetch error:", error);
         resultDiv.innerHTML = \'<div class="text-red-600 bg-red-50 p-3 rounded-lg border border-red-200"><i class="fas fa-exclamation-circle mr-2"></i>Error: \' + error.message + \'</div>\';
     });
 }

@@ -4,6 +4,10 @@
  * Complete checkout flow with shipping, billing, and payment
  */
 
+// Load session helper FIRST for consistent session handling
+require_once __DIR__ . '/../includes/session_helper.php';
+ensureSessionStarted();
+
 // Load global config for error display (sets DEBUG_MODE)
 require_once __DIR__ . '/../config.php';
 
@@ -12,8 +16,6 @@ require_once __DIR__ . '/../includes/email_service.php';
 
 // Enable debug mode if requested (overrides global setting)
 $debugMode = isset($_GET['debug']) || isset($_SESSION['checkout_debug']);
-
-session_start();
 
 if ($debugMode) {
     echo "<div style='background:#1e1e1e;color:#d4d4d4;padding:20px;margin:10px;border-radius:5px;font-family:monospace;'>";
@@ -44,7 +46,7 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     if ($debugMode) echo "✓ Database connected\n";
-} catch (Exception $e) {
+} catch (Throwable $e) {
     $db = null;
     $errorMsg = "Database connection failed: " . $e->getMessage();
     error_log($errorMsg);
@@ -68,8 +70,8 @@ if ($debugMode) {
     echo "✓ Cart subtotal: R" . number_format($cartTotal, 2) . "\n";
 }
 
-// Check login status
-$isLoggedIn = isset($_SESSION['user_id']);
+// Check login status - must verify user_logged_in is true, not just set
+$isLoggedIn = isset($_SESSION['user_id']) && isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true;
 if ($debugMode) echo ($isLoggedIn ? "✓" : "○") . " User is " . ($isLoggedIn ? "logged in" : "guest") . "\n";
 $currentUser = null;
 $userAddresses = [];
@@ -79,7 +81,7 @@ if ($isLoggedIn && $db) {
         $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
         $stmt->execute([$_SESSION['user_id']]);
         $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         error_log("Error fetching user: " . $e->getMessage());
     }
 }
@@ -89,7 +91,7 @@ $deliveryMethods = [];
 if ($db) {
     try {
         $deliveryMethods = getActiveDeliveryMethods($db);
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         $errorMsg = "Error getting delivery methods: " . $e->getMessage();
         error_log($errorMsg);
         $checkoutErrors[] = $errorMsg;
@@ -125,7 +127,7 @@ if ($db) {
                     if ($details) {
                         $manualPaymentDetails[$method['type']] = $details['fields'];
                     }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     $errorMsg = 'Error fetching manual payment details: ' . $e->getMessage();
                     error_log($errorMsg);
                     $checkoutErrors[] = $errorMsg;
@@ -133,7 +135,7 @@ if ($db) {
                 }
             }
         }
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         $errorMsg = "Error fetching payment methods: " . $e->getMessage();
         error_log($errorMsg);
         $checkoutErrors[] = $errorMsg;
@@ -175,7 +177,9 @@ if ($isLoggedIn && $db) {
     // Handle selected address from modal
     if (isset($_GET['address_id'])) {
         $stmt = $db->prepare("
-            SELECT * FROM user_addresses
+            SELECT *,
+                   CONCAT(first_name, ' ', last_name) as name
+            FROM user_addresses
             WHERE id = ? AND user_id = ?
             LIMIT 1
         ");
@@ -284,6 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $shippingAddress = json_encode([
                 'street' => $_POST['address'],
                 'city' => $_POST['city'],
+                'province' => $_POST['province'] ?? '',
                 'postal_code' => $_POST['postal_code'],
                 'country' => $_POST['country'] ?? 'South Africa'
             ]);
@@ -292,8 +297,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $billingAddress = json_encode([
                 'street' => $_POST['billing_address'] ?? $_POST['address'],
                 'city' => $_POST['billing_city'] ?? $_POST['city'],
+                'province' => $_POST['billing_province'] ?? $_POST['province'] ?? '',
                 'postal_code' => $_POST['billing_postal_code'] ?? $_POST['postal_code'],
-                'country' => $_POST['billing_country'] ?? 'South Africa'
+                'country' => $_POST['billing_country'] ?? $_POST['country'] ?? 'South Africa'
             ]);
 
             if ($debugMode) {
@@ -472,7 +478,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "Trace: " . $e->getTraceAsString() . "\n";
             }
             $errors['general'] = $debugMode ? 'Database Error: ' . htmlspecialchars($e->getMessage()) : 'Unable to process your order due to a system issue. Please try again or contact support.';
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $errorMsg = "ORDER ERROR: " . $e->getMessage();
             error_log($errorMsg);
             $checkoutErrors[] = $errorMsg;
@@ -661,7 +667,10 @@ include __DIR__ . '/../includes/header.php';
                                     </button>
                                 </div>
                                 <div class="text-gray-700">
-                                    <p><?= htmlspecialchars($displayAddress['address']) ?></p>
+                                    <p><?= htmlspecialchars($displayAddress['address_line1']) ?></p>
+                                    <?php if (!empty($displayAddress['address_line2'])): ?>
+                                        <p><?= htmlspecialchars($displayAddress['address_line2']) ?></p>
+                                    <?php endif; ?>
                                     <p>
                                         <?= htmlspecialchars($displayAddress['city']) ?>
                                         <?php if (!empty($displayAddress['province'])): ?>
@@ -678,12 +687,18 @@ include __DIR__ . '/../includes/header.php';
                                 </div>
                             </div>
                             <!-- Hidden fields with address data -->
-                            <input type="hidden" name="address" value="<?= htmlspecialchars($displayAddress['address']) ?>">
+                            <input type="hidden" name="address" value="<?= htmlspecialchars($displayAddress['address_line1']) ?>">
+                            <input type="hidden" name="address_line2" value="<?= htmlspecialchars($displayAddress['address_line2'] ?? '') ?>">
                             <input type="hidden" name="city" value="<?= htmlspecialchars($displayAddress['city']) ?>">
+                            <input type="hidden" name="province" value="<?= htmlspecialchars($displayAddress['province'] ?? '') ?>">
                             <input type="hidden" name="postal_code" value="<?= htmlspecialchars($displayAddress['postal_code'] ?? '') ?>">
-                            <input type="hidden" name="country" value="<?= htmlspecialchars($displayAddress['country'] ?? 'South Africa') ?>">
+                            <input type="hidden" name="country" value="<?= htmlspecialchars($displayAddress['country'] ?? '') ?>">
+                            <script>
+                                // Set default country if saved address has no country
+                                document.querySelector('select[name="country"]').value = "<?= htmlspecialchars($displayAddress['country'] ?? 'South Africa') ?>";
+                            </script>
                             <input type="hidden" name="phone" value="<?= htmlspecialchars($displayAddress['phone'] ?? '') ?>">
-                            <?php 
+                            <?php
                             $fullNameParts = explode(' ', $displayAddress['name'] ?? '', 2);
                             $displayFirstName = $fullNameParts[0] ?? '';
                             $displayLastName = $fullNameParts[1] ?? '';
@@ -704,7 +719,7 @@ include __DIR__ . '/../includes/header.php';
                                     <?php endif; ?>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
                                         <input type="text" name="city" required
@@ -713,6 +728,18 @@ include __DIR__ . '/../includes/header.php';
                                                placeholder="Cape Town">
                                         <?php if (isset($errors['city'])): ?>
                                             <p class="text-red-500 text-sm mt-1"><?php echo $errors['city'] ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1"><span data-location-province-label>Province/State</span> *</label>
+                                        <select name="province" required
+                                                data-location-province
+                                                data-placeholder="Select Province/State"
+                                                class="w-full px-4 py-3 border <?php echo isset($errors['province']) ? 'border-red-500' : 'border-gray-300' ?> rounded-lg focus:ring-green-500 focus:border-green-500">
+                                            <option value="">Select Province/State</option>
+                                        </select>
+                                        <?php if (isset($errors['province'])): ?>
+                                            <p class="text-red-500 text-sm mt-1"><?php echo $errors['province'] ?></p>
                                         <?php endif; ?>
                                     </div>
                                     <div>
@@ -726,10 +753,25 @@ include __DIR__ . '/../includes/header.php';
                                         <?php endif; ?>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                                        <select name="country" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
-                                            <option value="South Africa" selected>South Africa</option>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
+                                        <select name="country" required
+                                                data-location-country
+                                                data-placeholder="Select Country"
+                                                class="w-full px-4 py-3 border <?php echo isset($errors['country']) ? 'border-red-500' : 'border-gray-300' ?> rounded-lg focus:ring-green-500 focus:border-green-500">
+                                            <option value="">Select Country</option>
+                                            <?php
+                                            // Add countries from location_data
+                                            require_once __DIR__ . '/../../includes/location_data.php';
+                                            foreach (getLocationCountries() as $country): ?>
+                                                <option value="<?php echo htmlspecialchars($country['name']); ?>"
+                                                        <?php echo (isset($_POST['country']) && $_POST['country'] === $country['name']) ? 'selected' : ''; ?>>
+                                                    <?php echo htmlspecialchars($country['name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
                                         </select>
+                                        <?php if (isset($errors['country'])): ?>
+                                            <p class="text-red-500 text-sm mt-1"><?php echo $errors['country'] ?></p>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>

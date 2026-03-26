@@ -3,35 +3,16 @@
  * Order Details View - User Dashboard
  * Detailed view of a single order with tracking
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-session_start();
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect('/user/login/');
-}
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
 // Get order ID
 $orderId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
-
-// Helper function to get product image URL
-// Helper function to get product image URL
 // Helper function to get product image URL
 function getProductImageUrl($productImages): string {
     if (empty($productImages)) {
@@ -60,20 +41,12 @@ function getProductImageUrl($productImages): string {
     return url(ltrim($path, '/'));
 }
 
-try {
-    $database = new Database();
-    $db = $database->getConnection();
-} catch (Exception $e) {
-    $db = null;
-    error_log("Database connection failed: " . $e->getMessage());
-}
-
 // Fetch order
 $order = null;
 $orderItems = [];
 $orderHistory = [];
 
-if ($db && $orderId) {
+if ($orderId) {
     try {
         // Get order (verify it belongs to the user)
         $stmt = $db->prepare("SELECT * FROM orders WHERE id = ? AND user_id = ?");

@@ -54,8 +54,14 @@ function ensurePaymentMethodsSchema(PDO $db): void
         if (!isset($columns['manual_type'])) {
             $db->exec("ALTER TABLE payment_methods ADD COLUMN manual_type VARCHAR(50) DEFAULT NULL AFTER is_manual");
         }
+        if (!isset($columns['qr_code_path'])) {
+            $db->exec("ALTER TABLE payment_methods ADD COLUMN qr_code_path VARCHAR(255) NULL AFTER manual_type");
+        }
+        if (!isset($columns['color'])) {
+            $db->exec("ALTER TABLE payment_methods ADD COLUMN color VARCHAR(7) DEFAULT '#6B7280' AFTER qr_code_path");
+        }
         if (!isset($columns['created_at'])) {
-            $db->exec("ALTER TABLE payment_methods ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP AFTER manual_type");
+            $db->exec("ALTER TABLE payment_methods ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP AFTER color");
         }
         if (!isset($columns['updated_at'])) {
             $db->exec("ALTER TABLE payment_methods ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at");
@@ -74,6 +80,8 @@ function createManualPaymentMethod(PDO $db, array $data): int
     $description = trim($data['description'] ?? '');
     $active = !empty($data['active']) ? 1 : 0;
     $fields = $data['fields'] ?? [];
+    $qrCodePath = trim($data['qr_code_path'] ?? '');
+    $color = trim($data['color'] ?? '#6B7280');
 
     if ($name === '' || $manualType === '') {
         throw new InvalidArgumentException('Name and Type are required');
@@ -93,12 +101,12 @@ function createManualPaymentMethod(PDO $db, array $data): int
     }
 
     $stmt = $db->prepare("
-        INSERT INTO payment_methods (name, type, description, config, active, is_manual, manual_type, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, 1, ?, NOW(), NOW())
+        INSERT INTO payment_methods (name, type, description, config, active, is_manual, manual_type, qr_code_path, color, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, NOW(), NOW())
     ");
 
     $config = '';
-    $stmt->execute([$name, $type, $description, $config, $active, $manualType]);
+    $stmt->execute([$name, $type, $description, $config, $active, $manualType, $qrCodePath, $color]);
 
     $methodId = (int)$db->lastInsertId();
 

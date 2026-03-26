@@ -125,8 +125,8 @@ if (empty($payment_methods)) {
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-                                    <i class="fas fa-credit-card text-gray-500"></i>
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" style="background-color: ' . htmlspecialchars($method['color'] ?? '#6B7280') . ';">
+                                    <i class="fas fa-credit-card text-white"></i>
                                 </div>
                                 <div class="text-sm font-medium text-gray-900">' . htmlspecialchars($method['name'] ?? 'N/A') . '</div>
                             </div>
@@ -141,15 +141,18 @@ if (empty($payment_methods)) {
                             ' . $activeStatus . '
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <a href="' . adminUrl('/payment-methods/edit/?id=' . $method['id']) . '" class="text-purple-600 hover:text-purple-900 mr-4">
-                                <i class="fas fa-edit mr-1"></i>Edit
+                            <button onclick="viewPaymentMethod(' . $method['id'] . ')" class="text-blue-600 hover:text-blue-900 mr-2 p-1" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <a href="' . adminUrl('/payment-methods/edit/?id=' . $method['id']) . '" class="text-purple-600 hover:text-purple-900 mr-2 p-1" title="Edit">
+                                <i class="fas fa-edit"></i>
                             </a>
                             <form method="POST" class="inline" onsubmit="return confirm(\'Are you sure you want to delete this payment method?\')">
                                 ' . csrf_field() . '
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="id" value="' . $method['id'] . '">
-                                <button type="submit" class="text-red-600 hover:text-red-900">
-                                    <i class="fas fa-trash mr-1"></i>Delete
+                                <button type="submit" class="text-red-600 hover:text-red-900 p-1" title="Delete">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </form>
                         </td>
@@ -164,6 +167,87 @@ if (empty($payment_methods)) {
 }
 
 $content .= '
+    <!-- View Payment Method Off-Canvas (Slide from Right) -->
+    <div id="viewOffcanvas" class="fixed inset-0 z-50 hidden overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeViewOffcanvas()"></div>
+        </div>
+
+        <!-- Off-canvas panel -->
+        <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+            <div class="w-screen max-w-md">
+                <div class="h-full flex flex-col bg-white shadow-xl">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between px-4 py-6 border-b border-gray-200 sm:px-6">
+                        <h2 class="text-lg font-medium text-gray-900" id="slide-over-title">Payment Method Details</h2>
+                        <button type="button" onclick="closeViewOffcanvas()" class="text-gray-400 hover:text-gray-500">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <!-- Content -->
+                    <div class="relative flex-1 px-4 py-6 sm:px-6 overflow-y-auto">
+                        <div id="offcanvas-content">
+                            <div class="text-center py-12">
+                                <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                                <p class="mt-2 text-gray-600">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function viewPaymentMethod(id) {
+            document.getElementById("viewOffcanvas").classList.remove("hidden");
+            document.getElementById("offcanvas-content").innerHTML = "<div class=\'text-center py-12\'><i class=\'fas fa-spinner fa-spin text-2xl text-gray-400\'></i><p class=\'mt-2 text-gray-600\'>Loading...</p></div>";
+
+            fetch("' . adminUrl('/payment-methods/view/?id=') . '" + id, {
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                credentials: "same-origin"
+            })
+            .then(r => {
+                if (!r.ok) {
+                    throw new Error("HTTP " + r.status);
+                }
+                return r.json();
+            })
+            .then(d => {
+                if (d.success) {
+                    let html = "<div class=\'space-y-6\'>";
+                    html += "<div class=\'flex items-center pb-4 border-b border-gray-200\'><div class=\'w-12 h-12 rounded-lg flex items-center justify-center mr-4\' style=\'background-color: " + (d.payment_method.color || "#6B7280") + "\'><i class=\'fas fa-credit-card text-white text-xl\'></i></div><div><h3 class=\'text-lg font-semibold text-gray-900\'>" + escapeHtml(d.payment_method.name) + "</h3><p class=\'text-sm text-gray-500\'>" + escapeHtml(d.payment_method.type || "") + (d.payment_method.manual_type ? " (" + escapeHtml(d.payment_method.manual_type) + ")" : "") + "</p></div></div>";
+                    if (d.payment_method.description) html += "<div><h4 class=\'text-sm font-medium text-gray-700 mb-1\'>Description</h4><p class=\'text-sm text-gray-600\'>" + escapeHtml(d.payment_method.description) + "</p></div>";
+                    if (Object.keys(d.fields).length > 0) {
+                        html += "<div><h4 class=\'text-sm font-medium text-gray-700 mb-3\'>Payment Details</h4><div class=\'bg-gray-50 rounded-lg p-4\'>";
+                        for (let [k,v] of Object.entries(d.fields)) if (v) html += "<div class=\'flex justify-between py-2 border-b border-gray-100 last:border-0\'><span class=\'text-sm font-medium text-gray-700\'>" + escapeHtml(k) + ":</span><span class=\'text-sm text-gray-900\'>" + escapeHtml(v) + "</span></div>";
+                        html += "</div></div>";
+                    }
+                    if (d.payment_method.qr_code_path && d.payment_method.asset_url) html += "<div><h4 class=\'text-sm font-medium text-gray-700 mb-2\'>QR Code</h4><img src=\'" + escapeHtml(d.payment_method.asset_url) + "\' alt=\'QR Code\' class=\'w-32 h-32 border border-gray-200 rounded-lg\'></div>";
+                    html += "<div class=\'flex items-center justify-between pt-4 border-t border-gray-200\'><span class=\'text-sm font-medium text-gray-700\'>Status</span><span class=\'px-2 py-1 text-xs font-medium " + (d.payment_method.active == 1 ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800") + " rounded-full\'>" + (d.payment_method.active == 1 ? "Active" : "Inactive") + "</span></div>";
+                    html += "</div>";
+                    document.getElementById("offcanvas-content").innerHTML = html;
+                } else {
+                    document.getElementById("offcanvas-content").innerHTML = "<p class=\'text-red-600\'>" + escapeHtml(d.message || "Error loading") + "</p>";
+                }
+            })
+            .catch(e => {
+                document.getElementById("offcanvas-content").innerHTML = "<p class=\'text-red-600\'>Error: " + escapeHtml(e.message) + "</p>";
+            });
+        }
+
+        function closeViewOffcanvas() {
+            document.getElementById("viewOffcanvas").classList.add("hidden");
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
 </div>';
 
 // Render the page with sidebar

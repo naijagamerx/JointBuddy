@@ -36,6 +36,25 @@
     }
     ?>
     <title><?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) . ' - ' : '' ?><?php echo htmlspecialchars($storeNameForTitle); ?></title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="<?php echo htmlspecialchars($metaDescription ?? 'JointBuddy - Premium 3D printed cannabis accessories. Your trusted marketplace for innovative grinders, rolling trays, and lifestyle gear.'); ?>">
+    <meta name="keywords" content="<?php echo htmlspecialchars($metaKeywords ?? 'cannabis, marketplace, 3d printed, additives, accessories, JointBuddy, jointbuddy.co.za'); ?>">
+    <link rel="canonical" href="<?php echo htmlspecialchars($canonicalUrl ?? url($_SERVER['REQUEST_URI'])); ?>">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?php echo htmlspecialchars($canonicalUrl ?? url($_SERVER['REQUEST_URI'])); ?>">
+    <meta property="og:title" content="<?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : htmlspecialchars($storeNameForTitle); ?>">
+    <meta property="og:description" content="<?php echo htmlspecialchars($metaDescription ?? 'JointBuddy - Premium 3D printed cannabis accessories. Innovative gear for the modern enthusiast.'); ?>">
+    <meta property="og:image" content="<?php echo htmlspecialchars($ogImage ?? assetUrl('images/branding/og-image.png')); ?>">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="<?php echo htmlspecialchars($canonicalUrl ?? url($_SERVER['REQUEST_URI'])); ?>">
+    <meta property="twitter:title" content="<?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : htmlspecialchars($storeNameForTitle); ?>">
+    <meta property="twitter:description" content="<?php echo htmlspecialchars($metaDescription ?? 'JointBuddy - Premium 3D printed cannabis accessories. Innovative gear for the modern enthusiast.'); ?>">
+    <meta property="twitter:image" content="<?php echo htmlspecialchars($ogImage ?? assetUrl('images/branding/og-image.png')); ?>">
 
 <?php
 // Universal Header Component for CannaBuddy
@@ -153,20 +172,68 @@ if (isset($db)) {
 
 // Calculate Cart Count
 $cartCount = 0;
+$cart = [];
 
-if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
-    // Native PHP Session (Standalone Mode)
-    $cart = $_SESSION['cart'];
-    foreach ($cart as $item) {
-        $cartCount += $item['qty'];
-    }
-} elseif (function_exists('session') && session()->has('cart')) {
-    // CodeIgniter Session
-    $cart = session()->get('cart');
-    if (is_array($cart)) {
-        foreach ($cart as $item) {
-            $cartCount += $item['qty'];
+// For logged-in users, only load from database if session cart is empty (prevents duplication loop)
+if (isset($isLoggedIn) && $isLoggedIn && isset($currentUser['id']) && isset($db)) {
+    // Use session cart as primary source - only load from DB if session is empty (fresh login)
+    if (empty($_SESSION['cart'])) {
+        try {
+            require_once __DIR__ . '/cart_sync_service.php';
+            require_once __DIR__ . '/product_helpers.php';
+            $dbCart = loadCartFromDatabase($db, $currentUser['id']);
+            if (!empty($dbCart)) {
+                // Convert database cart format to session format
+                $cart = [];
+                foreach ($dbCart as $dbItem) {
+                    // Build product array for image helper
+                    $productForImage = [
+                        'images' => $dbItem['product_images'],
+                        'image_1' => null,
+                        'image_2' => null,
+                        'image_3' => null,
+                        'image_4' => null
+                    ];
+                    // Try to extract first image from comma-separated list
+                    if (!empty($dbItem['product_images'])) {
+                        $imageList = explode(',', $dbItem['product_images']);
+                        if (!empty($imageList[0])) {
+                            $productForImage['image_1'] = trim($imageList[0]);
+                        }
+                    }
+
+                    $cart[] = [
+                        'product_id' => $dbItem['product_id'],
+                        'name' => $dbItem['product_name'],
+                        'slug' => $dbItem['product_slug'],
+                        'price' => $dbItem['price'],
+                        'original_price' => $dbItem['price'], // Will be updated if on sale
+                        'qty' => $dbItem['quantity'],
+                        'image' => getProductMainImage($productForImage),
+                        'max_stock' => $dbItem['stock']
+                    ];
+                }
+                // Store in session - don't sync back to avoid loop
+                $_SESSION['cart'] = $cart;
+            } else {
+                $cart = [];
+            }
+        } catch (Exception $e) {
+            $cart = [];
         }
+    } else {
+        // Session cart exists - use it directly (don't reload from DB)
+        $cart = $_SESSION['cart'];
+    }
+} else {
+    // Guest users - use session cart only
+    $cart = $_SESSION['cart'] ?? [];
+}
+
+// Calculate total count
+if (is_array($cart)) {
+    foreach ($cart as $item) {
+        $cartCount += $item['qty'] ?? $item['quantity'] ?? 0;
     }
 }
 
@@ -216,6 +283,20 @@ define('HEADER_INCLUDED', true);
         letter-spacing: -0.025em;
     }
 </style>
+
+    <!-- Location Dropdowns Script (for checkout and address book) -->
+    <?php if (isset($_SERVER['REQUEST_URI'])): ?>
+        <?php
+        $requestUri = $_SERVER['REQUEST_URI'];
+        $includeLocationScript = (strpos($requestUri, '/checkout/') !== false ||
+                                  strpos($requestUri, '/user/address-book/') !== false ||
+                                  strpos($requestUri, '/user/add-address/') !== false);
+        ?>
+        <?php if ($includeLocationScript): ?>
+        <script src="<?= assetUrl('js/checkout-location.js') ?>" defer></script>
+        <?php endif; ?>
+    <?php endif; ?>
+
     </head>
 <body class="min-h-screen bg-gray-100">
 <?php

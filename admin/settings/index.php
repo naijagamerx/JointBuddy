@@ -1,11 +1,70 @@
 <?php
-require_once __DIR__ . '/../orders/view/invoice_registry.php';
+/**
+ * General Settings Page with Enhanced Error Logging
+ * This file tracks errors to help debug production issues
+ */
 
-// Include bootstrap (loads all core services)
-require_once __DIR__ . '/../../includes/bootstrap.php';
+// Enable detailed error logging for production debugging
+$settingsDebugLog = __DIR__ . '/../../logs/settings_debug.log';
+$settingsDebugDir = dirname($settingsDebugLog);
+if (!is_dir($settingsDebugDir)) {
+    @mkdir($settingsDebugDir, 0777, true);
+}
+
+// Log page load start
+$debugEntry = "[" . date('Y-m-d H:i:s') . "] Settings page load START\n";
+$debugEntry .= "  REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A') . "\n";
+$debugEntry .= "  REQUEST_METHOD: " . ($_SERVER['REQUEST_METHOD'] ?? 'N/A') . "\n";
+@file_put_contents($settingsDebugLog, $debugEntry . "\n", FILE_APPEND);
+
+// Try to include required files with error tracking
+$loadErrors = [];
+
+try {
+    if (!file_exists(__DIR__ . '/../orders/view/invoice_registry.php')) {
+        throw new Exception('invoice_registry.php not found at: ' . __DIR__ . '/../orders/view/invoice_registry.php');
+    }
+    require_once __DIR__ . '/../orders/view/invoice_registry.php';
+    @error_log("[Settings] invoice_registry.php loaded OK");
+} catch (Exception $e) {
+    $loadErrors[] = 'invoice_registry.php: ' . $e->getMessage();
+    @error_log("[Settings ERROR] " . $e->getMessage());
+}
+
+try {
+    if (!file_exists(__DIR__ . '/../../includes/bootstrap.php')) {
+        throw new Exception('bootstrap.php not found at: ' . __DIR__ . '/../../includes/bootstrap.php');
+    }
+    require_once __DIR__ . '/../../includes/bootstrap.php';
+    @error_log("[Settings] bootstrap.php loaded OK");
+} catch (Exception $e) {
+    $loadErrors[] = 'bootstrap.php: ' . $e->getMessage();
+    @error_log("[Settings ERROR] " . $e->getMessage());
+}
+
+// Check for required classes
+$missingClasses = [];
+if (!class_exists('AuthMiddleware')) {
+    $missingClasses[] = 'AuthMiddleware';
+    @error_log("[Settings ERROR] AuthMiddleware class not found");
+}
+if (!class_exists('Services')) {
+    $missingClasses[] = 'Services';
+    @error_log("[Settings ERROR] Services class not found");
+}
 
 // Require authentication (admin only)
-AuthMiddleware::requireAdmin();
+try {
+    if (class_exists('AuthMiddleware')) {
+        AuthMiddleware::requireAdmin();
+        @error_log("[Settings] Admin auth check OK");
+    } else {
+        throw new Exception('AuthMiddleware class not available');
+    }
+} catch (Exception $e) {
+    $loadErrors[] = 'AuthMiddleware: ' . $e->getMessage();
+    @error_log("[Settings ERROR] Auth failed: " . $e->getMessage());
+}
 
 // Get admin auth and database connection from services
 $adminAuth = Services::adminAuth();
@@ -48,8 +107,30 @@ if ($db) {
 }
 
 // Handle form submission
-if ($_POST && $adminAuth && $db) {
+if ($_POST) {
+    @error_log("[Settings POST] Form submission detected at " . date('Y-m-d H:i:s'));
+
+    // Log debug info
+    $postDebug = "[" . date('Y-m-d H:i:s') . "] POST request received\n";
+    $postDebug .= "  adminAuth: " . (isset($adminAuth) ? 'YES' : 'NO') . "\n";
+    $postDebug .= "  db: " . (isset($db) && $db ? 'YES' : 'NO') . "\n";
+    $postDebug .= "  POST keys: " . implode(', ', array_keys($_POST)) . "\n";
+    $postDebug .= "  FILES: " . (isset($_FILES['store_logo']) ? 'YES (error=' . $_FILES['store_logo']['error'] . ')' : 'NO') . "\n";
+    @file_put_contents($settingsDebugLog, $postDebug . "\n", FILE_APPEND);
+
+    if (!$adminAuth) {
+        @error_log("[Settings ERROR] adminAuth is null/undefined");
+        $_SESSION['error'] = 'Authentication error. Please log in again.';
+        redirect('/admin/login/');
+    }
+    if (!$db) {
+        @error_log("[Settings ERROR] db is null/undefined");
+        $_SESSION['error'] = 'Database connection error. Please try again.';
+        redirect('/admin/settings/');
+    }
+
     try {
+        @error_log("[Settings POST] Starting processing");
         // Handle regular settings updates
         $updates = $_POST;
         unset($updates['action']);
@@ -123,8 +204,18 @@ if ($_POST && $adminAuth && $db) {
         }
 
         $_SESSION['success'] = 'Settings updated successfully!';
+        @error_log("[Settings POST] SUCCESS - Settings updated at " . date('Y-m-d H:i:s'));
         redirect('/admin/settings/');
     } catch (Exception $e) {
+        // Enhanced error logging
+        $errorDetails = "[" . date('Y-m-d H:i:s') . "] SETTINGS UPDATE FAILED\n";
+        $errorDetails .= "  Message: " . $e->getMessage() . "\n";
+        $errorDetails .= "  File: " . $e->getFile() . " on line " . $e->getLine() . "\n";
+        $errorDetails .= "  Trace: " . substr($e->getTraceAsString(), 0, 500) . "\n";
+        $errorDetails .= "  POST data: " . print_r($_POST, true) . "\n";
+        @file_put_contents($settingsDebugLog, $errorDetails . "\n", FILE_APPEND);
+        @error_log("[Settings ERROR] " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+
         $_SESSION['error'] = AppError::handleDatabaseError($e, 'Error updating settings');
     }
 }

@@ -3,31 +3,13 @@
  * Return Request Form - CannaBuddy
  * Submit a new return request
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-session_start();
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect('/user/login/?redirect=' . urlencode('/user/returns/'));
-}
-
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
-
-$db = null;
 $order = null;
 $orderItems = [];
 $settings = [];
@@ -36,8 +18,6 @@ $success = false;
 $returnNumber = '';
 
 try {
-    $database = new Database();
-    $db = $database->getConnection();
 
     // Fetch settings
     $stmt = $db->query("SELECT setting_key, setting_value FROM settings WHERE category = 'returns'");
@@ -61,6 +41,7 @@ if (!$orderId) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    CsrfMiddleware::validate();
     $selectedItems = isset($_POST['items']) ? $_POST['items'] : [];
     $reasonType = isset($_POST['reason_type']) ? $_POST['reason_type'] : '';
     $reasonDetails = isset($_POST['reason_details']) ? trim($_POST['reason_details']) : '';
@@ -397,6 +378,7 @@ include __DIR__ . '/../../includes/header.php';
                             <i class="fas fa-paper-plane mr-2"></i>Submit Return Request
                         </button>
                     </div>
+                    <?= csrf_field() ?>
                 </div>
             </form>
         </div>

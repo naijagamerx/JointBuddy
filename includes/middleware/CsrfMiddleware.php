@@ -25,13 +25,22 @@ class CsrfMiddleware {
 
         if (!self::isValid($token)) {
             http_response_code(403);
-            sessionFlash('csrf_error', 'Security check failed. Please try again.');
             error_log('CSRF validation failed for: ' . ($_SERVER['REQUEST_URI'] ?? 'unknown'));
+            
+            if (isAjax()) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Security check failed. Please refresh the page and try again.']);
+                exit;
+            }
+            
+            sessionFlash('csrf_error', 'Security check failed. Please try again.');
             redirect($_SERVER['HTTP_REFERER'] ?? '/');
         }
 
-        // Regenerate after successful validation
-        self::regenerate();
+        // Only regenerate if it's NOT an AJAX request to prevent token rotation during multiple async calls
+        if (!isAjax()) {
+            self::regenerate();
+        }
     }
 
     /**

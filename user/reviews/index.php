@@ -3,31 +3,12 @@
  * Product Reviews Page - User Dashboard
  * Display and manage user product reviews
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect(userUrl('/login/'));
-}
-
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
 $reviews = [];
 $reviewStats = [
@@ -42,40 +23,30 @@ $error = '';
 
 // Handle delete review action
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_review') {
-    // Verify CSRF token
-    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $error = 'Invalid security token. Please refresh and try again.';
-    } else {
-        try {
-            $database = new Database();
-            $db = $database->getConnection();
-            
-            $reviewId = intval($_POST['review_id'] ?? 0);
-            
-            // Verify the review belongs to this user and is pending (can only delete pending reviews)
-            $stmt = $db->prepare("SELECT id, status FROM product_reviews WHERE id = ? AND user_id = ?");
+    CsrfMiddleware::validate();
+    try {
+        $reviewId = intval($_POST['review_id'] ?? 0);
+
+        // Verify the review belongs to this user and is pending (can only delete pending reviews)
+        $stmt = $db->prepare("SELECT id, status FROM product_reviews WHERE id = ? AND user_id = ?");
+        $stmt->execute([$reviewId, $currentUser['id']]);
+        $review = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($review) {
+            // Delete the review
+            $stmt = $db->prepare("DELETE FROM product_reviews WHERE id = ? AND user_id = ?");
             $stmt->execute([$reviewId, $currentUser['id']]);
-            $review = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($review) {
-                // Delete the review
-                $stmt = $db->prepare("DELETE FROM product_reviews WHERE id = ? AND user_id = ?");
-                $stmt->execute([$reviewId, $currentUser['id']]);
-                $message = 'Review deleted successfully!';
-                csrf_regenerate(); // Regenerate token after successful action
-            } else {
-                $error = 'Review not found or you do not have permission to delete it.';
-            }
-        } catch (Exception $e) {
-            error_log("Error deleting review: " . $e->getMessage());
-            $error = 'An error occurred while deleting the review.';
+            $message = 'Review deleted successfully!';
+        } else {
+            $error = 'Review not found or you do not have permission to delete it.';
         }
+    } catch (Exception $e) {
+        error_log("Error deleting review: " . $e->getMessage());
+        $error = 'An error occurred while deleting the review.';
     }
 }
 
 try {
-    $database = new Database();
-    $db = $database->getConnection();
 
     // Verify the session user exists in the database
     $stmt = $db->prepare("SELECT id, email, first_name, last_name FROM users WHERE id = ? AND is_active = 1");

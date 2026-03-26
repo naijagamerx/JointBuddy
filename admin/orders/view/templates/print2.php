@@ -340,10 +340,26 @@ $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' . ur
                     </p>
                 <?php endif; ?>
                 <p style="margin-top: 15px; font-style: italic;">Thank you for your business.</p>
+                <?php if (!empty($paymentMethodName) && $paymentMethodName !== 'N/A'): ?>
+                    <p style="margin-top: 10px;"><strong>Payment Method:</strong> <?php echo htmlspecialchars($paymentMethodName); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($paymentCustomFields)): ?>
+                    <div style="margin-top: 8px;">
+                        <strong>Payment Details:</strong><br>
+                        <?php foreach ($paymentCustomFields as $fieldName => $fieldValue): ?>
+                            <?php if (!empty($fieldValue)): ?>
+                                <span style="font-size: 12px;"><?php echo htmlspecialchars($fieldName); ?>: <?php echo htmlspecialchars($fieldValue); ?></span><br>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
+            <?php if (!empty($qrCodeUrl)): ?>
             <div class="qr-code">
-                 <img src="<?php echo htmlspecialchars($qrCodeUrl); ?>" alt="QR Code" style="width:80px;height:80px; border: 1px solid #000; padding: 5px;">
+                 <p style="font-size: 11px; margin-bottom: 5px; color: #666;">Scan to Pay:</p>
+                 <img src="<?php echo htmlspecialchars($qrCodeUrl); ?>" alt="Payment QR Code" style="width:80px;height:80px; border: 1px solid #000; padding: 5px;">
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </body>

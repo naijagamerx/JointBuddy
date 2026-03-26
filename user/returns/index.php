@@ -3,31 +3,13 @@
  * User Returns Dashboard - CannaBuddy
  * Display user's return requests and eligible orders
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-session_start();
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect('/user/login/?redirect=' . urlencode('/user/returns/'));
-}
-
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
-
-$db = null;
 $returns = [];
 $eligibleOrders = [];
 $returnCounts = [
@@ -41,8 +23,6 @@ $returnCounts = [
 // Get return settings
 $settings = [];
 try {
-    $database = new Database();
-    $db = $database->getConnection();
 
     // Fetch settings
     $stmt = $db->query("SELECT setting_key, setting_value FROM settings WHERE category = 'returns'");
@@ -55,9 +35,8 @@ try {
 
 $eligibilityDays = isset($settings['return_eligibility_days']) ? (int)$settings['return_eligibility_days'] : 14;
 
-if ($db) {
-    try {
-        // Get return counts by status
+try {
+    // Get return counts by status
         $stmt = $db->prepare("
             SELECT status, COUNT(*) as count
             FROM returns
@@ -128,7 +107,6 @@ if ($db) {
     } catch (Exception $e) {
         error_log("Error fetching returns: " . $e->getMessage());
     }
-}
 
 // Helper function for status badge
 function getReturnStatusBadge($status) {

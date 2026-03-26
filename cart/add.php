@@ -3,7 +3,8 @@
  * Add to Cart Handler - CannaBuddy
  * Handles adding products to the session-based cart
  */
-session_start();
+require_once __DIR__ . '/../includes/session_helper.php';
+ensureSessionStarted();
 require_once __DIR__ . '/../includes/url_helper.php';
 require_once __DIR__ . '/../includes/product_helpers.php';
 require_once __DIR__ . '/../includes/cart_sync_service.php';

@@ -15,7 +15,9 @@ $db = $database->getConnection();
 
 try {
     $stmt = $db->prepare("
-        SELECT id, name, address, city, postal_code, country, phone, 
+        SELECT id,
+               CONCAT(first_name, ' ', last_name) as name,
+               address_line1, address_line2, city, province, postal_code, country, phone,
                default_for_shipping, label, address_type
         FROM user_addresses
         WHERE user_id = ?

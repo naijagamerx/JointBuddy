@@ -29,7 +29,12 @@ class EmailService {
         }
 
         try {
-            $stmt = $this->db->query("SELECT setting_key, setting_value FROM settings WHERE setting_key LIKE 'email_%'");
+            $stmt = $this->db->query("
+                SELECT setting_key, setting_value FROM settings
+                WHERE setting_key LIKE 'email_%'
+                   OR setting_key LIKE 'smtp_%'
+                   OR setting_key IN ('from_email', 'from_name')
+            ");
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($results as $row) {
@@ -38,7 +43,7 @@ class EmailService {
 
             // Set defaults if not found
             $defaults = [
-                'email_method' => 'mail',
+                'email_method' => 'mail', // Will be overridden below if SMTP is configured
                 'from_email' => 'noreply@example.com',
                 'from_name' => 'Online Store',
                 'smtp_host' => '',
@@ -53,6 +58,15 @@ class EmailService {
                     $this->settings[$key] = $value;
                 }
             }
+
+            // Auto-detect SMTP method if smtp_host is configured but email_method is not set
+            if (!isset($this->settings['email_method']) || empty($this->settings['email_method'])) {
+                if (!empty($this->settings['smtp_host'])) {
+                    $this->settings['email_method'] = 'smtp';
+                } else {
+                    $this->settings['email_method'] = 'mail';
+                }
+            }
         } catch (Exception $e) {
             error_log("EmailService: Error loading settings - " . $e->getMessage());
         }
@@ -64,14 +78,40 @@ class EmailService {
      * @param string $to Recipient email
      * @param string $toName Recipient name
      * @param string $subject Email subject
-     * @param string $body Email body (HTML)
+     * @param string $body Email body (HTML) - used if no template
      * @param string $altBody Plain text alternative
+     * @param string $templateType Optional template type from email_templates
+     * @param array $variables Optional variables for placeholder replacement
      * @return bool Success status
      */
-    public function send($to, $toName, $subject, $body, $altBody = '') {
+    public function send($to, $toName, $subject, $body = '', $altBody = '', $templateType = null, $variables = []) {
         if (empty($to)) {
             $this->error = "No recipient email specified";
             return false;
+        }
+
+        // If template type provided, load and process template
+        if ($templateType) {
+            $template = $this->getTemplate($templateType);
+            if ($template) {
+                // Use template subject if available
+                $templateData = $this->getTemplateData($templateType);
+                if ($templateData && !empty($templateData['subject'])) {
+                    $subject = $templateData['subject'];
+                }
+                $body = $template;
+
+                // Replace placeholders
+                foreach ($variables as $key => $value) {
+                    $body = str_replace('{{' . $key . '}}', htmlspecialchars($value), $body);
+                    $subject = str_replace('{{' . $key . '}}', $value, $subject);
+                }
+            }
+        }
+
+        // If still no body, use altBody or error
+        if (empty($body)) {
+            $body = $altBody ?: 'Email content unavailable';
         }
 
         $fromEmail = $this->settings['from_email'] ?? 'noreply@example.com';
@@ -309,7 +349,7 @@ class EmailService {
         foreach ($orderItems as $item) {
             $itemsHtml .= '<tr>';
             $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee;">' . htmlspecialchars($item['product_name'] ?? 'Product') . '</td>';
-            $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">' . $item['quantity'] . '</td>';
+            $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">' . ($item['quantity'] ?? $item['qty']) . '</td>';
             $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">R ' . number_format($item['unit_price'] ?? 0, 2) . '</td>';
             $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">R ' . number_format($item['total_price'] ?? 0, 2) . '</td>';
             $itemsHtml .= '</tr>';
@@ -393,19 +433,178 @@ class EmailService {
     }
 
     /**
-     * Get email template from database
+     * Get email template HTML content
+     *
+     * @param string $type Template type
+     * @return string HTML content
      */
     private function getTemplate($type) {
-        if (!$this->db) return '';
+        $data = $this->getTemplateData($type);
+        return $data ? $data['html_content'] : '';
+    }
+
+    /**
+     * Get email template data from database
+     */
+    private function getTemplateData($type) {
+        if (!$this->db) return null;
 
         try {
-            $stmt = $this->db->prepare("SELECT html_content FROM email_templates WHERE type = ? AND active = 1");
+            $stmt = $this->db->prepare("SELECT * FROM email_templates WHERE type = ? AND active = 1");
             $stmt->execute([$type]);
-            $template = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $template ? $template['html_content'] : '';
+            return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
-            return '';
+            return null;
         }
+    }
+
+    /**
+     * Send welcome email to new user
+     */
+    public function sendWelcomeEmail($user) {
+        $templateData = $this->getTemplateData('welcome');
+        $subject = $templateData['subject'] ?? 'Welcome!';
+
+        return $this->send(
+            $user['email'],
+            $user['first_name'] . ' ' . $user['last_name'],
+            $subject,
+            '',
+            '',
+            'welcome',
+            [
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
+                'email' => $user['email'],
+                'login_url' => url('/login/')
+            ]
+        );
+    }
+
+    /**
+     * Send password reset email
+     */
+    public function sendPasswordReset($email, $firstName, $token) {
+        $templateData = $this->getTemplateData('password_reset');
+        $subject = $templateData['subject'] ?? 'Reset Your Password';
+        $resetUrl = url('/user/reset-password/?token=' . $token);
+
+        return $this->send(
+            $email,
+            $firstName,
+            $subject,
+            '',
+            '',
+            'password_reset',
+            [
+                'first_name' => $firstName,
+                'reset_url' => $resetUrl,
+                'email' => $email
+            ]
+        );
+    }
+
+    /**
+     * Send temporary password email
+     */
+    public function sendTemporaryPassword($email, $firstName, $tempPassword) {
+        $templateData = $this->getTemplateData('temporary_password');
+        $subject = $templateData['subject'] ?? 'Your Temporary Password';
+
+        return $this->send(
+            $email,
+            $firstName,
+            $subject,
+            '',
+            '',
+            'temporary_password',
+            [
+                'first_name' => $firstName,
+                'temp_password' => $tempPassword,
+                'login_url' => url('/login/'),
+                'email' => $email
+            ]
+        );
+    }
+
+    /**
+     * Send order status update email
+     */
+    public function sendOrderStatusUpdate($order, $customerEmail, $customerName, $status) {
+        $templateType = 'order_status_' . strtolower($status);
+        $templateData = $this->getTemplateData($templateType);
+
+        // Fallback to generic status update if specific template doesn't exist
+        if (!$templateData) {
+            $templateData = $this->getTemplateData('order_status_update');
+        }
+
+        $subject = $templateData['subject'] ?? "Order Status Update - {$order['order_number']}";
+        $orderNumber = $order['order_number'] ?? 'ORD-' . $order['id'];
+
+        return $this->send(
+            $customerEmail,
+            $customerName,
+            $subject,
+            '',
+            '',
+            $templateType,
+            [
+                'customer_name' => $customerName,
+                'order_number' => $orderNumber,
+                'order_status' => $status,
+                'order_total' => 'R ' . number_format($order['total_amount'], 2),
+                'track_order_url' => url('/user/orders/track/?id=' . $order['id'])
+            ]
+        );
+    }
+
+    /**
+     * Send payment received confirmation
+     */
+    public function sendPaymentReceived($order, $customerEmail, $customerName) {
+        $templateData = $this->getTemplateData('payment_received');
+        $subject = $templateData['subject'] ?? 'Payment Received - Thank You!';
+        $orderNumber = $order['order_number'] ?? 'ORD-' . $order['id'];
+
+        return $this->send(
+            $customerEmail,
+            $customerName,
+            $subject,
+            '',
+            '',
+            'payment_received',
+            [
+                'customer_name' => $customerName,
+                'order_number' => $orderNumber,
+                'payment_amount' => 'R ' . number_format($order['total_amount'], 2),
+                'payment_date' => date('F j, Y'),
+                'track_order_url' => url('/user/orders/view/?id=' . $order['id'])
+            ]
+        );
+    }
+
+    /**
+     * Send account verification email
+     */
+    public function sendAccountVerification($email, $firstName, $token) {
+        $templateData = $this->getTemplateData('account_verification');
+        $subject = $templateData['subject'] ?? 'Verify Your Email Address';
+        $verifyUrl = url('/verify-email/?token=' . $token);
+
+        return $this->send(
+            $email,
+            $firstName,
+            $subject,
+            '',
+            '',
+            'account_verification',
+            [
+                'first_name' => $firstName,
+                'email' => $email,
+                'verification_url' => $verifyUrl
+            ]
+        );
     }
 
     /**
@@ -416,7 +615,7 @@ class EmailService {
         foreach ($orderItems as $item) {
             $itemsHtml .= '<tr>';
             $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee;">' . htmlspecialchars($item['product_name'] ?? 'Product') . '</td>';
-            $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">' . $item['quantity'] . '</td>';
+            $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">' . ($item['quantity'] ?? $item['qty']) . '</td>';
             $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">R ' . number_format($item['unit_price'] ?? 0, 2) . '</td>';
             $itemsHtml .= '<td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">R ' . number_format($item['total_price'] ?? 0, 2) . '</td>';
             $itemsHtml .= '</tr>';

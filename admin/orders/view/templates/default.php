@@ -384,14 +384,30 @@ $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' . ur
                 <p>Thank you for your business!</p>
                 <p>For questions, contact <?php echo htmlspecialchars($storeEmail); ?></p>
                 <div style="margin-top: 10px;">
-                    <?php if (!empty($bankName) && !empty($bankAccountNumber)): ?>
+                    <?php if (!empty($paymentMethodName) && $paymentMethodName !== 'N/A'): ?>
+                        <strong>Payment Method:</strong> <?php echo htmlspecialchars($paymentMethodName); ?><br>
+                    <?php endif; ?>
+
+                    <?php if (!empty($paymentCustomFields)): ?>
+                        <div style="margin-top: 8px;">
+                            <strong>Payment Details:</strong><br>
+                            <?php foreach ($paymentCustomFields as $fieldName => $fieldValue): ?>
+                                <?php if (!empty($fieldValue)): ?>
+                                    <span style="font-size: 12px;"><?php echo htmlspecialchars($fieldName); ?>: <?php echo htmlspecialchars($fieldValue); ?></span><br>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php elseif (!empty($bankName) && !empty($bankAccountNumber)): ?>
                         <strong>Bank Details:</strong> <?php echo htmlspecialchars($bankName); ?> • Acc: <?php echo htmlspecialchars($bankAccountNumber); ?>
                     <?php endif; ?>
                 </div>
             </div>
+            <?php if (!empty($qrCodeUrl)): ?>
             <div class="qr-code">
-                 <img src="<?php echo htmlspecialchars($qrCodeUrl); ?>" alt="QR Code" style="width:60px;height:60px;">
+                 <p style="font-size: 11px; margin-bottom: 5px; color: #666;">Scan to Pay:</p>
+                 <img src="<?php echo htmlspecialchars($qrCodeUrl); ?>" alt="Payment QR Code" style="width:80px;height:80px;">
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </body>

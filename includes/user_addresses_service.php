@@ -15,7 +15,9 @@ function getUserAddresses(PDO $db, int $userId): array
 {
     try {
         $stmt = $db->prepare("
-            SELECT * FROM user_addresses
+            SELECT *,
+                   CONCAT(first_name, ' ', last_name) as name
+            FROM user_addresses
             WHERE user_id = ?
             ORDER BY default_for_shipping DESC, created_at DESC
         ");
@@ -38,7 +40,9 @@ function getDefaultAddress(PDO $db, int $userId): ?array
 {
     try {
         $stmt = $db->prepare("
-            SELECT * FROM user_addresses
+            SELECT *,
+                   CONCAT(first_name, ' ', last_name) as name
+            FROM user_addresses
             WHERE user_id = ? AND default_for_shipping = 1
             LIMIT 1
         ");

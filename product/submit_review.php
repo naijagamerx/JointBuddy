@@ -8,11 +8,10 @@
  * - Rate limiting (1 review per product per 24 hours)
  * - Input validation and sanitization
  */
-session_start();
-header('Content-Type: application/json');
+// Load bootstrap first - handles session, database, and all dependencies correctly
+require_once __DIR__ . '/../includes/bootstrap.php';
 
-require_once __DIR__ . '/../includes/database.php';
-require_once __DIR__ . '/../includes/url_helper.php';
+header('Content-Type: application/json');
 
 $response = ['success' => false, 'message' => ''];
 

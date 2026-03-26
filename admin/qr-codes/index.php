@@ -184,8 +184,10 @@ if (empty($qrCodes)) {
         $qrImageUrl = '';
         if (!empty($qr['qr_code_image_path'])) {
             if (strpos($qr['qr_code_image_path'], 'http') === 0) {
+                // Legacy: full URL stored (like http://localhost/...)
                 $qrImageUrl = $qr['qr_code_image_path'];
             } else {
+                // New: relative path stored (like qr-codes/filename.png)
                 $qrImageUrl = assetUrl($qr['qr_code_image_path']);
             }
         }
@@ -280,6 +282,7 @@ $content .= '
             <h2 class="text-xl font-bold text-gray-900 mb-4">Generate QR Code</h2>
 
             <form id="generateForm" method="POST" action="' . adminUrl('/qr-codes/generate.php') . '" class="space-y-4">
+                ' . csrf_field() . '
                 <input type="hidden" name="action" value="generate">
 
                 <div>
@@ -392,7 +395,7 @@ function toggleStatus(qrCodeId) {
     if (confirm("Are you sure you want to toggle the status of this QR code?")) {
         const form = document.createElement("form");
         form.method = "POST";
-        form.innerHTML = \'<input type="hidden" name="action" value="toggle_status"><input type="hidden" name="qr_code_id" value="\' + qrCodeId + \'">\';
+        form.innerHTML = \'<input type="hidden" name="action" value="toggle_status"><input type="hidden" name="qr_code_id" value="\' + qrCodeId + \'">' . str_replace("'", "\\'", csrf_field()) . '\';
         document.body.appendChild(form);
         form.submit();
     }
@@ -402,7 +405,7 @@ function deleteQRCode(qrCodeId, name) {
     if (confirm("Are you sure you want to delete the QR code for " + name + "?")) {
         const form = document.createElement("form");
         form.method = "POST";
-        form.innerHTML = \'<input type="hidden" name="action" value="delete"><input type="hidden" name="qr_code_id" value="\' + qrCodeId + \'">\';
+        form.innerHTML = \'<input type="hidden" name="action" value="delete"><input type="hidden" name="qr_code_id" value="\' + qrCodeId + \'">' . str_replace("'", "\\'", csrf_field()) . '\';
         document.body.appendChild(form);
         form.submit();
     }

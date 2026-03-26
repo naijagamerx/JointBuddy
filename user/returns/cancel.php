@@ -2,40 +2,23 @@
 /**
  * Cancel Return Request - CannaBuddy
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-session_start();
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect('/user/login/?redirect=' . urlencode('/user/returns/'));
-}
-
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
 $returnId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if (!$returnId) {
-    redirect('/user/returns/');
+    userUrl('/returns/');
+    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['confirm'])) {
+    CsrfMiddleware::validate();
     try {
-        $database = new Database();
-        $db = $database->getConnection();
 
         // Verify return belongs to user and is pending
         $stmt = $db->prepare("SELECT * FROM returns WHERE id = ? AND user_id = ? AND status = 'pending'");
@@ -57,11 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['confirm'])) {
             $_SESSION['return_cancelled'] = true;
         }
 
-        redirect('/user/returns/');
+        userUrl('/returns/');
+        exit;
 
     } catch (Exception $e) {
         error_log("Cancel return error: " . $e->getMessage());
-        redirect('/user/returns/');
+        userUrl('/returns/');
+        exit;
     }
 }
 

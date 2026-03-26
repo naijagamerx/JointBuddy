@@ -13,7 +13,8 @@ class QRCodeService {
     public function __construct($database) {
         $this->db = $database;
         $this->uploadDir = __DIR__ . '/../assets/qr-codes/';
-        $this->uploadUrl = assetUrl('qr-codes/');
+        // Store only relative path (not full URL) to allow dynamic domain changes
+        $this->uploadUrl = 'qr-codes/';
 
         // Create upload directory if not exists
         if (!is_dir($this->uploadDir)) {

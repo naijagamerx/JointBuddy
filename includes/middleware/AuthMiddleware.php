@@ -96,11 +96,14 @@ class AuthMiddleware {
             return null;
         }
         // Build user data from session since UserAuth doesn't have getCurrentUser()
+        $firstName = sessionGet('user_first_name', '');
+        $lastName = sessionGet('user_last_name', '');
         return [
             'id' => sessionGet('user_id'),
             'email' => sessionGet('user_email'),
-            'first_name' => sessionGet('user_first_name'),
-            'last_name' => sessionGet('user_last_name'),
+            'name' => trim($firstName . ' ' . $lastName) ?: 'User',
+            'first_name' => $firstName,
+            'last_name' => $lastName,
             'role' => sessionGet('user_role', 'customer'),
         ];
     }

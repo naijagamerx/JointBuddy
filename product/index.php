@@ -66,6 +66,21 @@ if ($db && $product) {
 // Set page title
 $pageTitle = $product ? htmlspecialchars($product['name']) : 'Product Not Found';
 
+// Set SEO Meta Tags for Product Page
+if ($product) {
+    $metaDescription = !empty($product['short_description']) 
+        ? htmlspecialchars(mb_strimwidth($product['short_description'], 0, 160, "...")) 
+        : htmlspecialchars($product['name']) . " - Premium 3D printed cannabis accessory by JointBuddy.";
+    
+    $metaKeywords = htmlspecialchars($product['name']) . ", 3d printed " . htmlspecialchars($product['category'] ?? 'cannabis accessories') . ", JointBuddy, jointbuddy.co.za, buy " . htmlspecialchars($product['name']);
+    
+    // OG Image
+    $ogImage = getProductMainImage($product);
+    
+    // Canonical URL
+    $canonicalUrl = productUrl($product['slug']);
+}
+
 // Include header
 include __DIR__ . '/../includes/header.php';
 

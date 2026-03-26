@@ -1,9 +1,6 @@
 <?php
 // Print-friendly Invoice Controller
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
+require_once __DIR__ . '/../../../includes/session_helper.php';
 require_once __DIR__ . '/../../../includes/database.php';
 require_once __DIR__ . '/../../../includes/url_helper.php';
 require_once __DIR__ . '/invoice_registry.php';
@@ -61,43 +58,66 @@ if ($db) {
         $storePhone = $settings['store_phone'] ?? '';
         $storeWebsite = $settings['site_url'] ?? '';
 
-        // Banking details - fetch from payment method custom fields ONLY
+        // Get payment method details with custom fields
+        $paymentMethodDetails = null;
+        $paymentCustomFields = [];
+        $paymentMethodName = $order['payment_method'] ?? 'N/A';
+
+        if (!empty($order['payment_method'])) {
+            // Try to find payment method by name first
+            $stmt = $db->prepare("SELECT * FROM payment_methods WHERE name = ? LIMIT 1");
+            $stmt->execute([$order['payment_method']]);
+            $paymentMethodDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // If not found by name, try by type (for backward compatibility)
+            if (!$paymentMethodDetails) {
+                $stmt = $db->prepare("SELECT * FROM payment_methods WHERE type = ? OR manual_type = ? LIMIT 1");
+                $stmt->execute([$order['payment_method'], $order['payment_method']]);
+                $paymentMethodDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+
+            // Get custom fields for this payment method
+            if ($paymentMethodDetails) {
+                $paymentMethodName = $paymentMethodDetails['name'];
+                $stmt = $db->prepare("SELECT field_name, field_value FROM payment_method_fields WHERE payment_method_id = ? ORDER BY sort_order ASC");
+                $stmt->execute([$paymentMethodDetails['id']]);
+                $paymentCustomFields = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            }
+        }
+
+        // Banking details - for backward compatibility with templates
         $bankName = '';
         $bankAccountName = '';
         $bankAccountNumber = '';
         $bankBranchCode = '';
 
-        // Get banking details from payment method's custom fields
-        if (!empty($order['payment_method'])) {
-            // First get the payment method ID
-            $stmt = $db->prepare("SELECT id FROM payment_methods WHERE name = ? OR manual_type = ? LIMIT 1");
-            $stmt->execute([$order['payment_method'], $order['payment_method']]);
-            $pm = $stmt->fetch();
-
-            if ($pm) {
-                $paymentMethodId = $pm['id'];
-                // Get custom fields for this payment method
-                $stmt = $db->prepare("SELECT field_name, field_value FROM payment_method_fields WHERE payment_method_id = ?");
-                $stmt->execute([$paymentMethodId]);
-                $customFields = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-
-                // Map common field names to variables
-                foreach ($customFields as $fieldName => $fieldValue) {
-                    $normalizedName = strtolower(str_replace([' ', '-', '_'], '', $fieldName));
-                    if (strpos($normalizedName, 'bankname') !== false || (strpos($normalizedName, 'bank') !== false && strpos($normalizedName, 'name') !== false)) {
-                        $bankName = $fieldValue;
-                    } elseif (strpos($normalizedName, 'accountname') !== false) {
-                        $bankAccountName = $fieldValue;
-                    } elseif (strpos($normalizedName, 'accountnumber') !== false || strpos($normalizedName, 'accountno') !== false) {
-                        $bankAccountNumber = $fieldValue;
-                    } elseif (strpos($normalizedName, 'branchcode') !== false) {
-                        $bankBranchCode = $fieldValue;
-                    }
-                }
+        // Map custom fields to old variable names for template compatibility
+        foreach ($paymentCustomFields as $fieldName => $fieldValue) {
+            $normalizedName = strtolower(str_replace([' ', '-', '_'], '', $fieldName));
+            if (strpos($normalizedName, 'bankname') !== false || (strpos($normalizedName, 'bank') !== false && strpos($normalizedName, 'name') !== false)) {
+                $bankName = $fieldValue;
+            } elseif (strpos($normalizedName, 'accountname') !== false) {
+                $bankAccountName = $fieldValue;
+            } elseif (strpos($normalizedName, 'accountnumber') !== false || strpos($normalizedName, 'accountno') !== false) {
+                $bankAccountNumber = $fieldValue;
+            } elseif (strpos($normalizedName, 'branchcode') !== false) {
+                $bankBranchCode = $fieldValue;
             }
         }
 
         // NO FALLBACK to settings - banking details only show if payment method has them
+
+        // Get QR code for cryptocurrency payments
+        $qrCodeUrl = '';
+        if (!empty($order['payment_method'])) {
+            $stmt = $db->prepare("SELECT qr_code_path FROM payment_methods WHERE name = ? OR manual_type = ? LIMIT 1");
+            $stmt->execute([$order['payment_method'], $order['payment_method']]);
+            $pm = $stmt->fetch();
+
+            if ($pm && !empty($pm['qr_code_path'])) {
+                $qrCodeUrl = assetUrl($pm['qr_code_path']);
+            }
+        }
 
         // Get delivery method
         $deliveryMethod = null;

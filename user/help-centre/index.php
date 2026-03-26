@@ -1,33 +1,17 @@
 <?php
-// Help Centre Page - Customer Support and FAQs
-session_start();
-require_once __DIR__ . '/../../includes/url_helper.php';
-require_once __DIR__ . '/../../includes/database.php';
+/**
+ * Help Centre Page - Customer Support and FAQs
+ */
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    header('Location: ' . userUrl('/login/'));
-    exit;
-}
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
 // Fetch settings from database
 $settings = [];
 try {
-    $database = new Database();
-    $db = $database->getConnection();
     $stmt = $db->query("SELECT setting_key, setting_value FROM settings WHERE category = 'general'");
     $settingsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($settingsData as $setting) {
@@ -45,9 +29,8 @@ $errorMessage = '';
 
 // Handle contact form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_message') {
+    CsrfMiddleware::validate();
     try {
-        $database = new Database();
-        $db = $database->getConnection();
 
         $subject = trim($_POST['subject'] ?? '');
         $category = trim($_POST['category'] ?? 'general');

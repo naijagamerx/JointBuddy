@@ -2,43 +2,21 @@
 /**
  * Coupons & Offers Page - Database-Driven Coupon System
  */
-session_start();
-require_once __DIR__ . '/../../includes/url_helper.php';
-require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/bootstrap.php';
+
+AuthMiddleware::requireUser();
+
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
+
 require_once __DIR__ . '/../../includes/coupons_service.php';
 
-$currentUser = null;
-$isLoggedIn = false;
 $message = '';
 $messageType = '';
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    header('Location: ' . userUrl('/login/'));
-    exit;
-}
-
-$database = new Database();
-$db = $database->getConnection();
-
-// Fetch available coupons
-$availableCoupons = getAvailableCoupons($db, $currentUser['id']);
-
-// Fetch recently used coupons
-$recentlyUsedCoupons = getRecentlyUsedCoupons($db, $currentUser['id'], 10);
-
 // Handle Apply button actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['coupon_code'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    CsrfMiddleware::validate();
     $couponCode = strtoupper(trim($_POST['coupon_code'] ?? ''));
 
     if (empty($couponCode)) {

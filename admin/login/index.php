@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset(
                     <span class="text-[10px] font-bold uppercase tracking-wider">Staff Only</span>
                 </div>
                 <h1 class="text-3xl font-semibold text-gray-900 mb-2">Admin Portal Access</h1>
-                <p class="text-gray-500 text-sm">Secure Administrator Access. Please verify your credentials to continue to the dashboard.</p>
+                <p class="text-gray-500 text-sm">Enter your admin credentials to access the dashboard.</p>
             </div>
 
             <?php if ($error): ?>
@@ -236,12 +236,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset(
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between py-1">
+                <div class="flex items-center py-1">
                     <div class="flex items-center space-x-2">
                         <input class="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" id="remember" name="remember" type="checkbox"/>
                         <label class="text-sm text-gray-600" for="remember">Keep me logged in</label>
                     </div>
-                    <a class="text-xs font-semibold text-primary hover:underline" href="#">Forgot admin credentials?</a>
                 </div>
 
                 <button class="w-full bg-primary text-white font-semibold py-3.5 rounded-lg shadow-sm hover:bg-[#132c11] transition-all duration-200 mt-2 flex items-center justify-center gap-2" type="submit">
@@ -249,19 +248,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset(
                     Authorize Access
                 </button>
             </form>
-
-            <div class="relative flex items-center my-8">
-                <div class="flex-grow border-t border-gray-100"></div>
-                <span class="flex-shrink mx-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">or</span>
-                <div class="flex-grow border-t border-gray-100"></div>
-            </div>
-
-            <div class="grid grid-cols-1 gap-4">
-                <button class="btn-social" type="button">
-                    <span class="material-symbols-outlined text-[20px]">passkey</span>
-                    <span>Sign in with SSO</span>
-                </button>
-            </div>
 
             <div class="mt-10 text-center">
                 <p class="text-gray-500 text-sm">

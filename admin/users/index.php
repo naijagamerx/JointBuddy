@@ -39,9 +39,20 @@ if ($db) {
 $errorMessage = $_SESSION['admin_error'] ?? null;
 unset($_SESSION['admin_error']);
 
+// Check for success messages
+$successMessage = $_SESSION['success'] ?? null;
+unset($_SESSION['success']);
+
 // Generate users content
 $content = '
 <div class="w-full max-w-7xl mx-auto">
+    <!-- Success Message -->
+    ' . ($successMessage ? '
+    <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+        <i class="fas fa-check-circle mr-2"></i>' . safe_html($successMessage) . '
+    </div>
+    ' : '') . '
+
     <!-- Error Message -->
     ' . ($errorMessage ? '
     <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">

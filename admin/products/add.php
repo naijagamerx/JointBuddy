@@ -274,7 +274,7 @@ $content .= '
                         <button type="button" onclick="addPredefinedField(\'Model\')" class="px-3 py-2 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Model</button>
                         <button type="button" onclick="addPredefinedField(\'Barcode\')" class="px-3 py-2 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Barcode</button>
                         <button type="button" onclick="addPredefinedField(\'Colour Name\')" class="px-3 py-2 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Colour Name</button>
-                        <button type="button" onclick="addPredefinedField(\'What&apos;s in the box\')" class="px-3 py-2 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">What&apos;s in the box</button>
+                        <button type="button" onclick="addPredefinedField(\'Whats in the box\')" class="px-3 py-2 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">What\'s in the box</button>
                         <button type="button" onclick="addPredefinedField(\'Classification\')" class="px-3 py-2 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Classification</button>
                     </div>
                 </div>
@@ -485,6 +485,7 @@ echo adminSidebarWrapper('Add Product', $content, 'products');
 <script>
 // Custom Fields Management
 let customFields = [];
+let customFieldIdCounter = 0;
 
 function loadCustomFields() {
     const customFieldsInput = document.getElementById('field_custom_fields');
@@ -502,18 +503,15 @@ function loadCustomFields() {
 
     if (container) {
         container.innerHTML = '';
-        customFields.forEach((field, index) => {
-            addFieldToUI(field.label, field.value, index);
+        customFields.forEach((field) => {
+            addFieldToUI(field.label, field.value);
         });
     }
 }
 
 function addCustomField(label = '', value = '') {
-    const container = document.getElementById('customFieldsContainer');
-    const index = customFields.length;
-
     customFields.push({ label, value });
-    addFieldToUI(label, value, index);
+    addFieldToUI(label, value);
     updateCustomFieldsInput();
 }
 
@@ -521,43 +519,94 @@ function addPredefinedField(fieldLabel) {
     addCustomField(fieldLabel, '');
 }
 
-function addFieldToUI(label, value, index) {
+function addFieldToUI(label, value) {
     const container = document.getElementById('customFieldsContainer');
     if (!container) return;
 
+    const fieldId = 'custom_field_' + customFieldIdCounter++;
+    const index = customFields.length - 1;
+
     const fieldDiv = document.createElement('div');
     fieldDiv.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4';
-    fieldDiv.dataset.index = index;
+    fieldDiv.id = fieldId;
+    fieldDiv.dataset.fieldIndex = index;
 
     fieldDiv.innerHTML =
         '<div class="flex items-start space-x-3">' +
             '<div class="flex-1">' +
                 '<label class="block text-sm font-medium text-gray-700 mb-1">Field Name</label>' +
-                '<input type="text" value="' + label + '" onchange="updateCustomField(' + index + ', \'label\', this.value)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Warranty">' +
+                '<input type="text" value="' + label.replace(/"/g, '&quot;') + '" data-field-type="label" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Warranty">' +
             '</div>' +
             '<div class="flex-1">' +
                 '<label class="block text-sm font-medium text-gray-700 mb-1">Value</label>' +
-                '<input type="text" value="' + value + '" onchange="updateCustomField(' + index + ', \'value\', this.value)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Limited (6 months)">' +
+                '<input type="text" value="' + value.replace(/"/g, '&quot;') + '" data-field-type="value" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Limited (6 months)">' +
             '</div>' +
-            '<button type="button" onclick="removeCustomField(' + index + ')" class="mt-6 p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">' +
+            '<button type="button" data-action="remove-field" class="mt-6 p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">' +
                 '<i class="fas fa-trash"></i>' +
             '</button>' +
         '</div>';
 
     container.appendChild(fieldDiv);
+
+    // Add event listeners for this field
+    const inputs = fieldDiv.querySelectorAll('input[data-field-type]');
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            updateCustomFieldFromUI(fieldId);
+        });
+    });
+
+    const removeBtn = fieldDiv.querySelector('[data-action="remove-field"]');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function() {
+            removeCustomField(fieldId);
+        });
+    }
 }
 
-function updateCustomField(index, key, value) {
-    if (customFields[index]) {
-        customFields[index][key] = value;
+function updateCustomFieldFromUI(fieldId) {
+    const fieldDiv = document.getElementById(fieldId);
+    if (!fieldDiv) return;
+
+    const labelInput = fieldDiv.querySelector('input[data-field-type="label"]');
+    const valueInput = fieldDiv.querySelector('input[data-field-type="value"]');
+    const index = parseInt(fieldDiv.dataset.fieldIndex);
+
+    if (index >= 0 && index < customFields.length && labelInput && valueInput) {
+        customFields[index].label = labelInput.value;
+        customFields[index].value = valueInput.value;
         updateCustomFieldsInput();
     }
 }
 
-function removeCustomField(index) {
-    customFields.splice(index, 1);
-    loadCustomFields();
+function removeCustomField(fieldId) {
+    const fieldDiv = document.getElementById(fieldId);
+    if (!fieldDiv) return;
+
+    const index = parseInt(fieldDiv.dataset.fieldIndex);
+    if (index >= 0 && index < customFields.length) {
+        customFields.splice(index, 1);
+    }
+
+    // Remove the element
+    fieldDiv.remove();
+
+    // Rebuild UI to fix indices
+    rebuildCustomFieldsUI();
     updateCustomFieldsInput();
+}
+
+function rebuildCustomFieldsUI() {
+    const container = document.getElementById('customFieldsContainer');
+    if (!container) return;
+
+    // Clear and rebuild
+    container.innerHTML = '';
+    customFieldIdCounter = 0;
+
+    customFields.forEach((field) => {
+        addFieldToUI(field.label, field.value);
+    });
 }
 
 function updateCustomFieldsInput() {

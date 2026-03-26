@@ -369,4 +369,4 @@ function resetForm() {
 }
 </script>';
 
-echo adminSidebarWrapper('Variations', $content, 'products');
+echo adminSidebarWrapper('Variations', $content, 'variations');

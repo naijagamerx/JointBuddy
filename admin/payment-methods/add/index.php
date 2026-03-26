@@ -2,6 +2,10 @@
 // Setup admin error handling
 require_once __DIR__ . '/../../../includes/admin_error_catcher.php';
 
+// Enable Whoops for debugging
+require_once __DIR__ . '/../../../includes/whoops_handler.php';
+setupWhoops();
+
 // Include bootstrap (loads all core services)
 require_once __DIR__ . '/../../../includes/bootstrap.php';
 
@@ -21,6 +25,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $manualType = trim($_POST['manual_type'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $active = isset($_POST['active']) ? 1 : 0;
+        $color = trim($_POST['color'] ?? '#6B7280');
+
+        // Handle QR code image upload for cryptocurrency
+        $qrCodePath = '';
+        if (isset($_FILES['qr_code_image']) && $_FILES['qr_code_image']['error'] === UPLOAD_ERR_OK && $manualType === 'crypto') {
+            $uploadDir = __DIR__ . '/../../../assets/images/payment-methods/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            if (!in_array($_FILES['qr_code_image']['type'], $allowedTypes)) {
+                throw new Exception('Invalid file type. Only JPG, PNG, WebP, and GIF allowed.');
+            }
+
+            if ($_FILES['qr_code_image']['size'] > 2 * 1024 * 1024) {
+                throw new Exception('File size exceeds 2MB limit.');
+            }
+
+            $ext = pathinfo($_FILES['qr_code_image']['name'], PATHINFO_EXTENSION);
+            $filename = 'qr_temp_' . time() . '_' . uniqid() . '.' . $ext;
+
+            if (move_uploaded_file($_FILES['qr_code_image']['tmp_name'], $uploadDir . $filename)) {
+                $qrCodePath = 'assets/images/payment-methods/' . $filename;
+            }
+        }
 
         $fieldNames = $_POST['field_name'] ?? [];
         $fieldValues = $_POST['field_value'] ?? [];
@@ -42,6 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'description' => $description,
             'active' => $active,
             'fields' => $fields,
+            'qr_code_path' => $qrCodePath,
+            'color' => $color,
         ]);
 
         if ($methodId > 0) {
@@ -109,7 +141,7 @@ $content = '
     </div>
 
     <div id="manual-tab">
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             ' . csrf_field() . '
             <div class="bg-white shadow rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
@@ -135,8 +167,85 @@ $content = '
                     </div>
 
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                        <div class="flex flex-wrap gap-3 mt-2">
+                            ' . $colorOptionsHtml = '
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#3B82F6" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-blue-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-blue-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#10B981" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-green-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-green-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#8B5CF6" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-purple-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-purple-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#F97316" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-orange-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-orange-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#EC4899" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-pink-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-pink-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#14B8A6" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-teal-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-teal-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#F59E0B" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-amber-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-amber-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#6B7280" class="sr-only peer" checked>
+                                <div class="w-8 h-8 rounded-full bg-gray-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-gray-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#06B6D4" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-cyan-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-cyan-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#6366F1" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-indigo-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-indigo-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="color" value="#84CC16" class="sr-only peer">
+                                <div class="w-8 h-8 rounded-full bg-lime-500 border-2 border-transparent peer-checked:ring-2 peer-checked:ring-lime-300 peer-checked:ring-offset-2 hover:scale-110 transition-transform"></div>
+                            </label>
+                            ' . '
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Choose a color to identify this payment method in the list.</p>
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
                         <textarea name="description" rows="3" class="w-full px-3 py-2 rounded-md border border-gray-200 shadow-sm focus:border-green-400 focus:ring-green-400 focus:ring-1 placeholder-gray-300 placeholder-opacity-60 sm:text-sm" placeholder="Short description of how this manual payment works"></textarea>
+                    </div>
+
+                    <!-- QR Code Upload for Cryptocurrency -->
+                    <div id="qr-code-upload-section" class="border-t border-gray-200 pt-4" style="display: none;">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3">
+                            <i class="fas fa-qrcode mr-1 text-gray-500"></i>
+                            Cryptocurrency QR Code (Optional)
+                        </h4>
+                        <p class="text-xs text-gray-500 mb-4">
+                            Upload a QR code image that customers can scan to pay. This will be displayed on the invoice.
+                        </p>
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-1">
+                                <input type="file" name="qr_code_image" accept="image/*"
+                                       class="w-full px-3 py-2 rounded-md border border-gray-200 shadow-sm focus:border-green-400 focus:ring-green-400 focus:ring-1 sm:text-sm"
+                                       onchange="previewQRCode(this)">
+                                <p class="text-xs text-gray-500 mt-1">Accepted formats: JPG, PNG, WebP, GIF (Max 2MB)</p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <div id="qr-preview" class="w-32 h-32 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center">
+                                    <span class="text-gray-400 text-xs text-center px-2">No QR code</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
@@ -268,6 +377,37 @@ $content = '
     if (container && container.children.length === 0) {
         addFieldRow("Bank Name", "");
         addFieldRow("Account Number", "");
+    }
+
+    // Toggle QR Code section based on payment type
+    var manualTypeSelect = document.querySelector("select[name=\\"manual_type\\"]");
+    var qrCodeSection = document.getElementById("qr-code-upload-section");
+
+    function showHideQRCode() {
+        if (manualTypeSelect && qrCodeSection) {
+            if (manualTypeSelect.value === "crypto") {
+                qrCodeSection.style.display = "block";
+            } else {
+                qrCodeSection.style.display = "none";
+            }
+        }
+    }
+
+    if (manualTypeSelect) {
+        manualTypeSelect.addEventListener("change", showHideQRCode);
+        // Trigger on page load in case crypto is already selected
+        showHideQRCode();
+    }
+
+    function previewQRCode(input) {
+        var preview = document.getElementById("qr-preview");
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = \'<img src="\' + e.target.result + \'" alt="QR Code" class="w-full h-full object-cover">\';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 })();
 </script>';

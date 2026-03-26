@@ -164,6 +164,11 @@ if ($route === 'home' || $route === '') {
         }
     }
 
+    // Set SEO Meta Tags for Homepage
+    $metaDescription = "Shop premium 3D printed cannabis accessories at JointBuddy. Discover our unique grinders, rolling trays, and innovative stash boxes designed for the modern herb enthusiast.";
+    $metaKeywords = "3d printed cannabis accessories, herb grinders, custom rolling trays, stash boxes, JointBuddy, jointbuddy.co.za, premium weed gear south africa";
+    $ogImage = assetUrl('images/branding/og-home.png');
+
     // Build slider HTML
     // Get settings from the first slide to apply to the whole slider
     $sliderHeight = '500px';
@@ -184,9 +189,10 @@ if ($route === 'home' || $route === '') {
     if (!empty($sliderImages)) {
         foreach ($sliderImages as $index => $slide) {
             $imagePath = !empty($slide['image_path']) ? htmlspecialchars(url($slide['image_path'])) : assetUrl('images/slider/slide1.png');
+            $altText = !empty($slide['title']) ? htmlspecialchars($slide['title']) . ' - JointBuddy Premium 3D Printed Accessories' : 'JointBuddy Premium 3D Printed Cannabis Accessories';
             $sliderHTML .= '
             <div class="min-w-full h-full relative">
-                <img src="' . $imagePath . '" alt="' . htmlspecialchars($slide['title']) . '" class="w-full h-full object-cover">
+                <img src="' . $imagePath . '" alt="' . $altText . '" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                     <div class="text-center text-white px-4">
                         <h2 class="text-4xl md:text-6xl font-bold mb-4 transform translate-y-4 opacity-0 transition-all duration-700 delay-300 slide-animate">' . htmlspecialchars($slide['title']) . '</h2>

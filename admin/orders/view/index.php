@@ -1,6 +1,12 @@
 <?php
 // Include bootstrap (loads all core services)
-require_once __DIR__ . '/../../../../includes/bootstrap.php';
+require_once __DIR__ . '/../../../includes/bootstrap.php';
+
+// Require InvoiceDesignRegistry for invoice designs
+require_once __DIR__ . '/invoice_registry.php';
+
+// Require product helpers for image processing
+require_once __DIR__ . '/../../../includes/product_helpers.php';
 
 // Require authentication (admin only)
 AuthMiddleware::requireAdmin();
@@ -164,6 +170,30 @@ if ($db) {
         $stmt = $db->query("SELECT id, name, manual_type, type, bank_name FROM payment_methods WHERE active = 1 ORDER BY name ASC");
         $paymentMethods = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Get the order's payment method details with custom fields
+        $orderPaymentMethod = null;
+        $orderPaymentFields = [];
+        if (!empty($order['payment_method'])) {
+            // Try to find by name first
+            $stmt = $db->prepare("SELECT * FROM payment_methods WHERE name = ? LIMIT 1");
+            $stmt->execute([$order['payment_method']]);
+            $orderPaymentMethod = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // If not found by name, try by type (for backward compatibility)
+            if (!$orderPaymentMethod) {
+                $stmt = $db->prepare("SELECT * FROM payment_methods WHERE type = ? OR manual_type = ? LIMIT 1");
+                $stmt->execute([$order['payment_method'], $order['payment_method']]);
+                $orderPaymentMethod = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+
+            // Get custom fields for this payment method
+            if ($orderPaymentMethod) {
+                $stmt = $db->prepare("SELECT field_name, field_value FROM payment_method_fields WHERE payment_method_id = ? ORDER BY sort_order ASC");
+                $stmt->execute([$orderPaymentMethod['id']]);
+                $orderPaymentFields = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            }
+        }
+
     } catch (Exception $e) {
         error_log("Error getting order: " . $e->getMessage());
         $_SESSION['error'] = 'Error loading order';
@@ -272,28 +302,13 @@ function formatFullAddress($address) {
 // Generate order items HTML
 $orderItemsHtml = '';
 foreach ($orderItems as $item) {
-    $productImages = $item['product_images'] ?? '';
-    $imageUrl = '';
-    if ($productImages) {
-        $imageParts = explode(',', $productImages);
-        $firstImage = trim($imageParts[0]);
-        if (!empty($firstImage)) {
-            // Check if it's already a full URL
-            if (strpos($firstImage, 'http://') === 0 || strpos($firstImage, 'https://') === 0) {
-                $imageUrl = $firstImage;
-            } 
-            // Check if it starts with /assets/ (relative path)
-            elseif (strpos($firstImage, '/assets/') === 0 || strpos($firstImage, 'assets/') === 0) {
-                $imageUrl = assetUrl(ltrim($firstImage, '/'));
-            }
-            // Otherwise treat as relative path
-            else {
-                $imagePath = ltrim(str_replace(rurl('/'), '', $firstImage), '/');
-                $imageUrl = url($imagePath);
-            }
-        }
-    }
-    $hasImage = !empty($imageUrl);
+    // Build product array for image helper
+    $productForImage = [
+        'images' => $item['product_images'] ?? '',
+        'image_1' => $item['product_images'] ?? '' // fallback
+    ];
+    $imageUrl = getProductMainImage($productForImage);
+    $hasImage = !empty($imageUrl) && strpos($imageUrl, 'placeholder') === false;
     $sku = $item['product_sku'] ?? 'N/A';
     $weight = !empty($item['product_weight']) ? $item['product_weight'] . 'kg' : 'N/A';
     $brand = $item['product_brand'] ?? '';
@@ -603,6 +618,9 @@ $content = '
             <a id="print_btn" href="' . adminUrl('/orders/view/print.php?id=' . $orderId . '&design=' . $currentDesign) . '" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 h-full">
                 <i class="fas fa-print mr-2"></i>Print Invoice
             </a>
+            <a href="mailto:' . htmlspecialchars($order['customer_email'] ?? '') . '?subject=Invoice%20for%20Order%20%23' . htmlspecialchars($order['order_number'] ?? $orderId) . '&body=Please%20find%20your%20invoice%20attached.%20You%20can%20also%20view%20it%20at%20' . urlencode(url('/user/invoices/view/?id=' . $orderId)) . '" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 h-full">
+                <i class="fas fa-envelope mr-2"></i>Email Invoice
+            </a>
             ' . $whatsappBtn . '
         </div>
         ' . $invoiceDesignScript . '
@@ -649,8 +667,30 @@ $content = '
                 <span class="block text-sm font-semibold text-gray-900 truncate">' . htmlspecialchars($order['customer_name'] ?? 'N/A') . '</span>
             </div>
             <div>
-                <span class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Payment Method</span>
-                <span id="payment-method-display" class="block text-sm font-semibold text-gray-900">' . htmlspecialchars(ucwords(str_replace('_', ' ', $order['payment_method'] ?? 'N/A'))) . '</span>
+                <span class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Payment Method</span>';
+                if ($orderPaymentMethod) {
+                    $content .= '
+                <span id="payment-method-display" class="block text-sm font-semibold text-gray-900">' . htmlspecialchars($orderPaymentMethod['name']) . '</span>';
+                    // Show custom fields if available
+                    if (!empty($orderPaymentFields)) {
+                        $content .= '
+                <div class="mt-1 space-y-1">';
+                        foreach ($orderPaymentFields as $fieldName => $fieldValue) {
+                            if (!empty($fieldValue)) {
+                                $content .= '
+                    <div class="text-xs text-gray-600">
+                        <span class="font-medium">' . htmlspecialchars($fieldName) . ':</span> ' . htmlspecialchars($fieldValue) . '
+                    </div>';
+                            }
+                        }
+                        $content .= '
+                </div>';
+                    }
+                } else {
+                    $content .= '
+                <span id="payment-method-display" class="block text-sm font-semibold text-gray-900">' . htmlspecialchars(ucwords(str_replace('_', ' ', $order['payment_method'] ?? 'N/A'))) . '</span>';
+                }
+                $content .= '
             </div>
             <div>
                 <span class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Delivery Method</span>

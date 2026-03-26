@@ -2,70 +2,58 @@
 /**
  * Redeem Gift Voucher Page - Database-Driven Voucher System
  */
-session_start();
-require_once __DIR__ . '/../../includes/url_helper.php';
-require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/bootstrap.php';
+
+// Require authentication
+AuthMiddleware::requireUser();
+
+// Get current user
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
+
+// Include voucher service
 require_once __DIR__ . '/../../includes/voucher_service.php';
-
-$currentUser = null;
-$isLoggedIn = false;
-$message = '';
-$messageType = '';
-
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    header('Location: ' . userUrl('/login/'));
-    exit;
-}
 
 $pageTitle = "Redeem Gift Voucher";
 $currentPage = "redeem-voucher";
-
-// Initialize database
-$database = new Database();
-$db = $database->getConnection();
+$message = '';
+$messageType = '';
 
 // Handle voucher redemption
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['voucher_code'])) {
-    $voucherCode = strtoupper(trim($_POST['voucher_code'] ?? ''));
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    CsrfMiddleware::validate();
 
-    if (empty($voucherCode)) {
-        $message = 'Please enter a voucher code';
-        $messageType = 'error';
-    } else {
-        // Get voucher from database
-        $voucher = getVoucherByCode($db, $voucherCode);
+    if (isset($_POST['voucher_code'])) {
+        $voucherCode = strtoupper(trim($_POST['voucher_code'] ?? ''));
 
-        if (!$voucher) {
-            $message = 'Invalid voucher code. Please check and try again.';
+        if (empty($voucherCode)) {
+            $message = 'Please enter a voucher code';
             $messageType = 'error';
         } else {
-            // Validate voucher
-            $validation = validateVoucher($db, $voucher, $currentUser['id']);
+            // Get voucher from database
+            $voucher = getVoucherByCode($db, $voucherCode);
 
-            if (!$validation['valid']) {
-                $message = $validation['message'];
+            if (!$voucher) {
+                $message = 'Invalid voucher code. Please check and try again.';
                 $messageType = 'error';
             } else {
-                // Redeem voucher
-                $result = redeemVoucher($db, $voucher, $currentUser['id']);
+                // Validate voucher
+                $validation = validateVoucher($db, $voucher, $currentUser['id']);
 
-                if ($result['success']) {
-                    $message = $result['message'];
-                    $messageType = 'success';
-                } else {
-                    $message = $result['message'];
+                if (!$validation['valid']) {
+                    $message = $validation['message'];
                     $messageType = 'error';
+                } else {
+                    // Redeem voucher
+                    $result = redeemVoucher($db, $voucher, $currentUser['id']);
+
+                    if ($result['success']) {
+                        $message = $result['message'];
+                        $messageType = 'success';
+                    } else {
+                        $message = $result['message'];
+                        $messageType = 'error';
+                    }
                 }
             }
         }
@@ -133,6 +121,7 @@ include __DIR__ . '/../components/header.php';
                                 </button>
                             </div>
                         </div>
+                        <?= csrf_field() ?>
                     </form>
 
                     <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">

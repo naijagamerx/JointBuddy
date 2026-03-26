@@ -14,6 +14,19 @@ class Database {
     }
     
     private function loadFromEnvironment() {
+        // First, try to load from config.php (production)
+        $configFile = dirname(__DIR__) . '/config.php';
+        if (file_exists($configFile)) {
+            include $configFile;
+            // config.php should define: $db_host, $db_name, $db_user, $db_pass
+            if (isset($db_host)) $this->host = $db_host;
+            if (isset($db_name)) $this->db_name = $db_name;
+            if (isset($db_user)) $this->username = $db_user;
+            if (isset($db_pass)) $this->password = $db_pass;
+            return; // Don't override with environment vars
+        }
+
+        // Fall back to environment variables
         $host = getenv('CB_DB_HOST');
         if ($host !== false && $host !== '') {
             $this->host = $host;

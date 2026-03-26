@@ -3,39 +3,12 @@
  * Order Tracking Page - User Dashboard
  * Track order status with detailed timeline
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect('/user/login/');
-}
-
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
-
-try {
-    $database = new Database();
-    $db = $database->getConnection();
-} catch (Exception $e) {
-    $db = null;
-    error_log("Database connection failed: " . $e->getMessage());
-}
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
 // Get order ID from query param or form
 $orderId = isset($_GET['id']) ? intval($_GET['id']) : 0;

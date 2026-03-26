@@ -3,7 +3,10 @@
  * Cart Page - CannaBuddy
  * Displays cart contents with quantity controls and checkout button
  */
-session_start();
+
+// Load session helper FIRST for consistent session handling
+require_once __DIR__ . '/../includes/session_helper.php';
+ensureSessionStarted();
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -23,10 +26,22 @@ try {
     error_log("Database connection failed: " . $e->getMessage());
 }
 
+// Check login status - must verify user_logged_in is true, not just set
+// Do this BEFORE POST handlers so they can use these variables
+$isLoggedIn = isset($_SESSION['user_id']) && isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true;
+$currentUser = null;
+if ($isLoggedIn) {
+    $currentUser = [
+        'id' => $_SESSION['user_id'],
+        'email' => $_SESSION['user_email'] ?? '',
+        'name' => $_SESSION['user_name'] ?? 'User'
+    ];
+}
+
 // Handle cart updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
+
     if ($action === 'update') {
         $quantities = $_POST['quantities'] ?? [];
         foreach ($quantities as $index => $qty) {
@@ -36,23 +51,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['cart'][$index]['qty'] = min($qty, $maxStock);
             }
         }
+        // Sync to database for logged-in users
+        if ($isLoggedIn && isset($currentUser['id']) && $db) {
+            syncCartToDatabase($db, $currentUser['id']);
+        }
         $_SESSION['cart_message'] = ['type' => 'success', 'text' => 'Cart updated successfully!'];
     }
-    
+
     if ($action === 'remove' && isset($_POST['index'])) {
         $index = intval($_POST['index']);
         if (isset($_SESSION['cart'][$index])) {
             unset($_SESSION['cart'][$index]);
             $_SESSION['cart'] = array_values($_SESSION['cart']); // Re-index
         }
+        // Sync to database for logged-in users
+        if ($isLoggedIn && isset($currentUser['id']) && $db) {
+            syncCartToDatabase($db, $currentUser['id']);
+        }
         $_SESSION['cart_message'] = ['type' => 'success', 'text' => 'Item removed from cart.'];
     }
-    
+
     if ($action === 'clear') {
         $_SESSION['cart'] = [];
+        // Clear from database for logged-in users
+        if ($isLoggedIn && isset($currentUser['id']) && $db) {
+            clearCartFromDatabase($db, $currentUser['id']);
+        }
         $_SESSION['cart_message'] = ['type' => 'success', 'text' => 'Cart cleared.'];
     }
-    
+
     // Redirect to prevent form resubmission
     header('Location: ' . url('/cart/'));
     exit;
@@ -95,21 +122,7 @@ $minShipping = !empty($deliveryMethods) ? $deliveryMethods[0]['cost'] : 50.00;
 $freeShippingThreshold = 500;
 $qualifiesForFreeShipping = $subtotal >= $freeShippingThreshold;
 
-// Check login status
-$isLoggedIn = isset($_SESSION['user_id']);
-$currentUser = null;
-if ($isLoggedIn) {
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'] ?? '',
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-    
-    // Sync cart to database for logged-in users
-    if ($db) {
-        syncCartToDatabase($db, $currentUser['id']);
-    }
-}
+// Note: Database sync is handled by header.php and POST actions - no sync here to avoid duplication loop
 
 $pageTitle = "Shopping Cart";
 include __DIR__ . '/../includes/header.php';

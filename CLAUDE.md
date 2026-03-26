@@ -75,7 +75,7 @@ dont hardcode CannaBuddy.shop into any link , this is prohbited dont ever add Ca
 
 ## Initial Analysis
 
-Before beginning work, use `mgrep` or `auggie-mcp` to analyze the codebase. Create implementation plans in `.claude/tasks/TASK_NAME.md`.
+Before beginning work, use multi-agent to analyze the codebase. Create implementation plans in `.claude/tasks/TASK_NAME.md`.
 
 **Parallel Tool Calls**: ALWAYS use parallel tool calls when possible. If you need to call multiple tools with no dependencies between them, make all independent calls in a single message. This maximizes speed and efficiency. Only call tools sequentially when one call's result is needed as input for another.
 
@@ -190,3 +190,97 @@ assetUrl('file.js')  // Asset files
 - test is done direct with http://localhost/CannaBuddy.shop
 
 Please dont write Cannabuddy in any of the page , yes the project name is cannabuddy but thatdoesnt mean its should be on the page because right now we think of changing the name so we need to start makiing it easy ,  no Cannabuddy in any new page or code
+
+---
+
+## FTP Deployment (Production Uploads)
+
+### FTP Credentials
+```
+FTP IP (hostname):    ftp://141.136.39.117
+FTP username:         u397530364.jointbuddy.co.za
+FTP port:             21
+FTP password:         (stored separately - not in version control)
+```
+
+### IMPORTANT: Path Structure
+
+**The FTP server's root directory is `/public_html`**
+
+When uploading files, the path works like this:
+- **Local file**: `C:\MAMP\htdocs\CannaBuddy.shop\admin\settings\index.php`
+- **FTP path**: `ftp://141.136.39.117/admin/settings/index.php` (NOT `/public_html/admin/...`)
+
+**DO NOT** include `/public_html/` in the FTP URL - the server starts there already!
+
+### Upload Methods
+
+#### Method 1: Using curl (Recommended for Automation)
+
+```bash
+# Upload a single file
+curl -T "local/path/file.php" -u "username:password" \
+  --ftp-create-dirs \
+  ftp://141.136.39.117/remote/path/file.php
+
+# Upload multiple files
+curl -T "test_delete/file1.php" -u "username:password" ftp://141.136.39.117/test_delete/file1.php
+curl -T "test_delete/file2.php" -u "username:password" ftp://141.136.39.117/test_delete/file2.php
+curl -T "admin/settings/index.php" -u "username:password" --ftp-create-dirs ftp://141.136.39.117/admin/settings/index.php
+```
+
+#### Method 2: Verify Upload
+
+```bash
+# Check if file exists on server
+curl -I ftp://141.136.39.117/path/to/file.php -u "username:password" 2>&1 | grep "Content-Length"
+```
+
+#### Method 3: Windows FTP Client (Interactive)
+
+```bash
+# Create a script file (e.g., ftp_commands.txt):
+u397530364.jointbuddy.co.za
+[password]
+pwd
+cd admin
+cd settings
+lcd C:\MAMP\htdocs\CannaBuddy.shop\admin\settings
+put index.php
+quit
+
+# Run it:
+ftp -s:ftp_commands.txt 141.136.39.117
+```
+
+### Common Upload Paths
+
+| Local Path | FTP Upload Path |
+|------------|-----------------|
+| `admin/settings/index.php` | `ftp://.../admin/settings/index.php` |
+| `test_delete/debug_script.php` | `ftp://.../test_delete/debug_script.php` |
+| `includes/database.php` | `ftp://.../includes/database.php` |
+| `assets/images/logo.png` | `ftp://.../assets/images/logo.png` |
+
+### Production Debugging Tools
+
+When debugging production issues, these tools are available:
+
+1. **Setup Error Logging**: Upload and run `test_delete/setup_error_logging.php`
+2. **Run Diagnostics**: Upload and run `test_delete/diagnose_production.php`
+3. **View Error Logs**: Check `/logs/php_errors.log` on server
+
+### After Upload Checklist
+
+1. **Verify files exist** using curl -I or Hostinger File Manager
+2. **Check file permissions** (755 for directories, 644 for files)
+3. **Test the page** in browser immediately
+4. **Run php-guardian skill** to check for syntax errors before uploading
+
+### IMPORTANT NOTES
+
+- **Always** test locally before uploading
+- **Never** commit FTP credentials to version control
+- **Always** use `--ftp-create-dirs` flag when creating new directories
+- **Delete** debug/diagnostic scripts after fixing issues
+- **Remember**: FTP root = `/public_html`, so paths are relative to that

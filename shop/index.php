@@ -3,7 +3,10 @@
  * Shop Listing Page - CannaBuddy
  * Displays all products with filtering and sorting capabilities
  */
-session_start();
+
+// Load session helper FIRST for consistent session handling
+require_once __DIR__ . '/../includes/session_helper.php';
+ensureSessionStarted();
 
 // Include database and URL helper
 require_once __DIR__ . '/../includes/database.php';
@@ -112,6 +115,11 @@ $currentPage = "shop";
 if (isset($_GET['sort']) && $_GET['sort'] === 'newest' && !isset($_GET['search']) && !isset($_GET['category'])) {
     $currentPage = "new-arrivals";
 }
+
+// Set SEO Meta Tags for Shop Page
+$metaDescription = "Browse the JointBuddy collection of premium 3D printed cannabis accessories. Filter by category, price, and discover innovative grinders, trays, and more.";
+$metaKeywords = "3d printed cannabis accessories shop, weed gear online south africa, JointBuddy grinders, custom rolling trays, jointbuddy.co.za";
+$canonicalUrl = shopUrl('/');
 
 include __DIR__ . '/../includes/header.php';
 ?>

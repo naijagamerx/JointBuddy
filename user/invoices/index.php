@@ -3,31 +3,12 @@
  * User Invoices Page - Invoice Management
  * Display and manage user invoices
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect('/user/login/');
-}
-
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
 $invoices = [];
 $invoiceStats = [
@@ -38,8 +19,6 @@ $invoiceStats = [
 ];
 
 try {
-    $database = new Database();
-    $db = $database->getConnection();
 
     // Get all invoices (orders) for the user
     $stmt = $db->prepare("

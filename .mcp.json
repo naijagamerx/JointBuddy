@@ -34,23 +34,19 @@
         "Authorization": "Bearer 20bba9cc4d9644bb808172e620ec4b43.St1ZJrXNGPFutYrb"
       }
     },
-    "auggie-mcp": {
-      "command": "auggie",
-      "args": [
-        "--mcp"
-      ]
-    },
     "chrome-devtools": {
       "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest"]
-    },
-    "archon": {
-      "type": "http",
-      "url": "http://localhost:8051/mcp"
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@executeautomation/playwright-mcp"]
+      "args": [
+        "-y",
+        "@executeautomation/playwright-mcp"
+      ]
     }
   }
 }

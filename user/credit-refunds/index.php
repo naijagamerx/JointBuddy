@@ -1,35 +1,18 @@
 <?php
-// Credit & Refunds Page - Manage Refunds and Credit Transactions
-session_start();
-require_once __DIR__ . '/../../includes/url_helper.php';
-require_once __DIR__ . '/../../includes/database.php';
+/**
+ * Credit & Refunds Page - Manage Refunds and Credit Transactions
+ */
+require_once __DIR__ . '/../../includes/bootstrap.php';
+
+AuthMiddleware::requireUser();
+
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
+
 require_once __DIR__ . '/../../includes/credit_service.php';
-
-$currentUser = null;
-$isLoggedIn = false;
-
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    header('Location: ' . userUrl('/login/'));
-    exit;
-}
 
 $pageTitle = "Credit & Refunds";
 $currentPage = "credit-refunds";
-
-// Get real data from database
-$database = new Database();
-$db = $database->getConnection();
 
 $userId = $currentUser['id'];
 $creditSummary = getUserCreditSummary($db, $userId);

@@ -75,6 +75,17 @@ class AuthHandler implements HandlerInterface {
 
         if ($result['success'] ?? false) {
             $_SESSION['registration_success'] = $result['message'] ?? 'Registration successful!';
+
+            // Send welcome email
+            try {
+                require_once __DIR__ . '/../email_service.php';
+                $db = Services::db();
+                $emailService = new EmailService($db);
+                $emailService->sendWelcomeEmail($userData);
+            } catch (Exception $e) {
+                // Log error but don't fail registration
+                error_log("Failed to send welcome email to {$userData['email']}: " . $e->getMessage());
+            }
         } else {
             $_SESSION['registration_error'] = $result['message'] ?? 'Registration failed.';
         }

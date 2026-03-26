@@ -9,6 +9,7 @@ require_once __DIR__ . '/../config.php';
 
 session_start();
 require_once __DIR__ . '/../includes/url_helper.php';
+require_once __DIR__ . '/../includes/product_helpers.php';
 
 // Include database
 require_once __DIR__ . '/../includes/database.php';
@@ -120,7 +121,7 @@ include __DIR__ . '/../includes/header.php';
 <?php else: ?>
     <!-- Order Confirmed -->
     <div class="bg-gray-100 min-h-screen py-8">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <!-- Success Header -->
             <div class="text-center mb-8">
                 <!-- Animated Checkmark -->
@@ -234,25 +235,13 @@ include __DIR__ . '/../includes/header.php';
                     <h3 class="text-lg font-bold text-gray-900 mb-3">Order Items (<?php echo count($orderItems) ?>)</h3>
                     <div class="border rounded-lg divide-y mb-6">
                         <?php foreach ($orderItems as $item):
-                            // Get product image URL from images column (comma-separated)
-                            $productImages = $item['product_images'] ?? '';
-                            $imageUrl = '';
-
-                            if ($productImages) {
-                                // Images are comma-separated, get the first one
-                                $imageParts = explode(',', $productImages);
-                                $firstImage = trim($imageParts[0]);
-
-                                if (!empty($firstImage)) {
-                                    // Remove base path prefix if present for relative path
-                                    $imagePath = str_replace(rurl('/'), '', $firstImage);
-                                    // Remove leading slash for assetUrl
-                                    $imagePath = ltrim($imagePath, '/');
-                                    $imageUrl = url($imagePath);
-                                }
-                            }
-
-                            $hasImage = !empty($imageUrl);
+                            // Build product array for image helper
+                            $productForImage = [
+                                'images' => $item['product_images'] ?? '',
+                                'image_1' => $item['product_images'] ?? '' // fallback
+                            ];
+                            $imageUrl = getProductMainImage($productForImage);
+                            $hasImage = !empty($imageUrl) && strpos($imageUrl, 'placeholder') === false;
                         ?>
                             <div class="flex items-center p-4">
                                 <?php if ($hasImage): ?>

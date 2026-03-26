@@ -108,6 +108,16 @@ function getBaseUrl() {
 }
 
 /**
+ * Check if the current request is an AJAX request
+ * 
+ * @return bool True if AJAX request
+ */
+function isAjax() {
+    return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') ||
+           (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false);
+}
+
+/**
  * Generate a full URL from a path
  * Example: url('/admin/login/') -> 'http://localhost/CannaBuddy.shop/admin/login/'
  */
@@ -232,8 +242,11 @@ function validateRedirect($redirect, $allowedPaths = null) {
             '/user/profile',
             '/user/checkout',
             '/user/cart',
+            '/user/login',
+            '/user/register',
             '/shop',
-            '/product'
+            '/product',
+            '/index.php'
         ];
     }
 
@@ -242,33 +255,50 @@ function validateRedirect($redirect, $allowedPaths = null) {
         return true;
     }
 
+    // Extract path from full URL if present
+    $path = $redirect;
+
+    // If it's a full URL, extract just the path component
+    if (preg_match('#^https?://[^/]+(/.*)$#i', $redirect, $matches)) {
+        $path = $matches[1];
+    }
+
     // Check for protocol-relative URLs (security risk)
-    if (strpos($redirect, '//') === 0) {
+    if (strpos($path, '//') === 0) {
         error_log("Blocked protocol-relative redirect: {$redirect}");
         return false;
     }
 
-    // Check for absolute URLs with different protocol
-    if (preg_match('#^(https?:|//)#i', $redirect)) {
-        error_log("Blocked external URL redirect: {$redirect}");
-        return false;
+    // Check for absolute URLs with external protocol (different host)
+    if (preg_match('#^https?://#i', $redirect)) {
+        // Extract host from redirect
+        $redirectHost = parse_url($redirect, PHP_URL_HOST);
+        $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+
+        // Allow if it's the same host
+        if ($redirectHost === $currentHost) {
+            // Same host, continue with path validation below
+        } else {
+            error_log("Blocked external URL redirect: {$redirect}");
+            return false;
+        }
     }
 
     // Must start with / (relative path)
-    if (strpos($redirect, '/') !== 0) {
+    if (strpos($path, '/') !== 0) {
         error_log("Blocked redirect not starting with /: {$redirect}");
         return false;
     }
 
     // Check against whitelist (must start with one of the allowed paths)
     foreach ($allowedPaths as $allowed) {
-        if (strpos($redirect, $allowed) === 0) {
+        if (strpos($path, $allowed) === 0) {
             return true;
         }
     }
 
     // Block if not in whitelist
-    error_log("Blocked redirect not in whitelist: {$redirect}");
+    error_log("Blocked redirect not in whitelist: {$redirect} (path: {$path})");
     return false;
 }
 

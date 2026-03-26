@@ -3,31 +3,13 @@
  * Return Eligibility Check - CannaBuddy
  * Check if an order is eligible for return
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-session_start();
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect('/user/login/?redirect=' . urlencode('/user/returns/'));
-}
-
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
-
-$db = null;
 $order = null;
 $orderItems = [];
 $isEligible = false;
@@ -35,8 +17,6 @@ $ineligibilityReason = '';
 $settings = [];
 
 try {
-    $database = new Database();
-    $db = $database->getConnection();
 
     // Fetch settings
     $stmt = $db->query("SELECT setting_key, setting_value FROM settings WHERE category = 'returns'");
@@ -54,10 +34,9 @@ $policyText = $settings['return_policy_text'] ?? '';
 $orderId = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
 
 if (!$orderId) {
-    redirect('/user/returns/');
+    userUrl('/returns/');
+    exit;
 }
-
-if ($db) {
     try {
         // Get order details
         $stmt = $db->prepare("SELECT * FROM orders WHERE id = ? AND user_id = ?");
@@ -104,7 +83,6 @@ if ($db) {
     } catch (Exception $e) {
         error_log("Error checking eligibility: " . $e->getMessage());
     }
-}
 
 // Helper function for product image
 function getProductImageUrl($images, $productId) {

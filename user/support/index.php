@@ -1,33 +1,17 @@
 <?php
-// Support Page - Customer Support and Help
-session_start();
-require_once __DIR__ . '/../../includes/url_helper.php';
-require_once __DIR__ . '/../../includes/database.php';
+/**
+ * Support Page - Customer Support and Help
+ */
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
-
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    header('Location: ' . userUrl('/login/'));
-    exit;
-}
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
 // Fetch settings from database
 $settings = [];
 try {
-    $database = new Database();
-    $db = $database->getConnection();
     $stmt = $db->query("SELECT setting_key, setting_value FROM settings WHERE category = 'general'");
     $settingsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($settingsData as $setting) {
@@ -62,7 +46,7 @@ include __DIR__ . '/../components/header.php';
                         <i class="fas fa-headset text-2xl"></i>
                     </div>
                     <div class="text-right">
-                        <a href="<?= userUrl('/logout/" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded text-sm font-medium transition">
+                        <a href="<?= userUrl('/logout/') ?>" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded text-sm font-medium transition">
                             <i class="fas fa-sign-out-alt mr-1"></i> Logout
                         </a>
                     </div>
@@ -114,28 +98,28 @@ include __DIR__ . '/../components/header.php';
                 <div class="bg-white rounded shadow-sm border border-gray-200 p-6 mb-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <a href="<?= userUrl('/orders/" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                        <a href="<?= userUrl('/orders/') ?>" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                             <i class="fas fa-box text-gray-600 mr-3"></i>
                             <div>
                                 <h4 class="font-medium text-gray-900">Track Your Order</h4>
                                 <p class="text-sm text-gray-600">Check order status and delivery updates</p>
                             </div>
                         </a>
-                        <a href="<?= userUrl('/returns/" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                        <a href="<?= userUrl('/returns/') ?>" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                             <i class="fas fa-undo text-gray-600 mr-3"></i>
                             <div>
                                 <h4 class="font-medium text-gray-900">Return an Item</h4>
                                 <p class="text-sm text-gray-600">Start a return or exchange process</p>
                             </div>
                         </a>
-                        <a href="<?= userUrl('/payment-history/" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                        <a href="<?= userUrl('/payment-history/') ?>" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                             <i class="fas fa-credit-card text-gray-600 mr-3"></i>
                             <div>
                                 <h4 class="font-medium text-gray-900">Billing Questions</h4>
                                 <p class="text-sm text-gray-600">Review your payment history and invoices</p>
                             </div>
                         </a>
-                        <a href="<?= userUrl('/personal-details/" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                        <a href="<?= userUrl('/personal-details/') ?>" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                             <i class="fas fa-user-edit text-gray-600 mr-3"></i>
                             <div>
                                 <h4 class="font-medium text-gray-900">Account Settings</h4>

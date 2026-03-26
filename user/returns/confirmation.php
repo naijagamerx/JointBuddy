@@ -3,42 +3,22 @@
  * Return Request Confirmation - CannaBuddy
  * Success page after submitting a return request
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-session_start();
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect('/user/login/?redirect=' . urlencode('/user/returns/'));
-}
-
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
-
-$db = null;
 $return = null;
 $returnId = isset($_GET['return_id']) ? (int)$_GET['return_id'] : 0;
 
 if (!$returnId) {
-    redirect('/user/returns/');
+    userUrl('/returns/');
+    exit;
 }
 
-if ($db) {
-    try {
-        $database = new Database();
-        $db = $database->getConnection();
+try {
 
         // Get return details
         $stmt = $db->prepare("SELECT * FROM returns WHERE id = ? AND user_id = ?");
@@ -46,13 +26,13 @@ if ($db) {
         $return = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$return) {
-            redirect('/user/returns/');
+            userUrl('/returns/');
+            exit;
         }
 
     } catch (Exception $e) {
         error_log("Database error: " . $e->getMessage());
     }
-}
 
 $pageTitle = "Return Submitted";
 $currentPage = "returns";

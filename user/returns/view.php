@@ -3,53 +3,28 @@
  * Return Details View - CannaBuddy
  * View details of a return request
  */
-require_once __DIR__ . '/../../includes/url_helper.php';
-session_start();
+require_once __DIR__ . '/../../includes/bootstrap.php';
 
-$currentUser = null;
-$isLoggedIn = false;
+AuthMiddleware::requireUser();
 
-// Check if user is logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $isLoggedIn = true;
-    $currentUser = [
-        'id' => $_SESSION['user_id'],
-        'email' => $_SESSION['user_email'],
-        'name' => $_SESSION['user_name'] ?? 'User'
-    ];
-}
+$currentUser = AuthMiddleware::getCurrentUser();
+$db = Services::db();
 
-// Redirect to login if not logged in
-if (!$isLoggedIn) {
-    redirect('/user/login/?redirect=' . urlencode('/user/returns/'));
-}
-
-// Include database
-require_once __DIR__ . '/../../includes/database.php';
-
-$db = null;
 $return = null;
 $returnItems = [];
 $order = null;
 $statusHistory = [];
 
-try {
-    $database = new Database();
-    $db = $database->getConnection();
-} catch (Exception $e) {
-    error_log("Database connection failed: " . $e->getMessage());
-}
-
 // Get return_id from URL
 $returnId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if (!$returnId) {
-    redirect('/user/returns/');
+    userUrl('/returns/');
+    exit;
 }
 
-if ($db) {
-    try {
-        // Get return details
+try {
+    // Get return details
         $stmt = $db->prepare("
             SELECT r.*, o.order_number, o.total_amount as order_total, o.shipping_address as shipping_address_json
             FROM returns r
@@ -72,7 +47,8 @@ if ($db) {
         }
 
         if (!$return) {
-            redirect('/user/returns/');
+            userUrl('/returns/');
+            exit;
         }
 
         // Get return items
@@ -98,7 +74,6 @@ if ($db) {
     } catch (Exception $e) {
         error_log("Error fetching return: " . $e->getMessage());
     }
-}
 
 // Helper functions
 function getReturnStatusBadge($status) {
